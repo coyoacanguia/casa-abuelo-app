@@ -26,7 +26,7 @@ header{background:var(--cobalt);color:#fff;padding:14px 16px 10px;display:flex;a
 /* NAV */
 nav{background:var(--cobalt-dark);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 4px;border-bottom:3px solid var(--terra)}
 nav::-webkit-scrollbar{display:none}
-.nav-btn{flex:0 0 auto;background:none;border:none;color:rgba(255,255,255,0.7);padding:10px 13px;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;transition:color 0.2s;border-bottom:3px solid transparent;margin-bottom:-3px}
+.nav-btn{flex:1 0 auto;background:none;border:none;color:rgba(255,255,255,0.7);padding:10px 13px;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;transition:color 0.2s;border-bottom:3px solid transparent;margin-bottom:-3px}
 .nav-btn.active,.nav-btn:hover{color:#fff;border-bottom-color:var(--terra)}
 .nav-btn i{width:16px;height:16px}
 
@@ -82,11 +82,13 @@ main{flex:1;overflow-y:auto;padding:16px}
 .inv-list {padding-left: 18px; margin-top: 5px; list-style-type: disc;}
 .inv-list li {margin-bottom: 6px;}
 
-/* GUIA TABS (Botones Interactivos) */
-.guia-tabs { display:flex; overflow-x:auto; gap:10px; padding-bottom:10px; margin-bottom:15px; scrollbar-width:none; }
-.guia-tabs::-webkit-scrollbar { display:none; }
-.guia-tab { background:var(--card); border:1px solid rgba(0,71,171,0.2); padding:8px 14px; border-radius:20px; font-size:13px; font-weight:600; color:var(--cobalt); cursor:pointer; white-space:nowrap; transition:all 0.2s; display:flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);}
-.guia-tab.active { background:var(--cobalt); color:#fff; border-color:var(--cobalt); }
+/* NUEVA MATRIZ DE CATEGORÍAS (CUADRADOS) */
+.guia-grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.guia-menu-btn { background: var(--card); border: 1px solid rgba(0,71,171,0.15); padding: 16px 10px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: all 0.2s ease; }
+.guia-menu-btn:active { transform: scale(0.96); }
+.guia-menu-btn.active { background: var(--cobalt); border-color: var(--cobalt); color: #fff; }
+.guia-menu-btn .menu-icon { font-size: 26px; }
+.guia-menu-btn .menu-label { font-size: 13px; font-weight: 600; text-align: center; }
 
 /* POI CARDS */
 .poi-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px;border:1px solid rgba(0,71,171,0.1)}
@@ -149,8 +151,8 @@ main{flex:1;overflow-y:auto;padding:16px}
 
 <div class="section active" id="bienvenida">
   <div class="welcome-banner">
-    <h2 data-i="welcome_title">¡Bienvenido a La Casa de mi Abuelo!</h2>
-    <p data-i="welcome_sub">Nelly y Marcelo están felices de recibirte. Todo lo que necesitas para tu estancia en Coyoacán está aquí.</p>
+    <h2 data-i="welcome_title">¡Bienvenido!</h2>
+    <p id="welcome-text-placeholder">Cargando bienvenida...</p>
     <div class="address-badge" onclick="openMaps('Benito Juarez 61, del Carmen, Coyoacan, 04100')">📍 Benito Juárez 61, Coyoacán</div>
   </div>
 
@@ -284,7 +286,7 @@ main{flex:1;overflow-y:auto;padding:16px}
     <p style="font-size:13px;opacity:0.9" data-i="guide_intro">Una selección curada por Nelly y Marcelo para vivir el barrio al máximo.</p>
   </div>
   
-  <div class="guia-tabs" id="guia-tabs"></div>
+  <div class="guia-grid-menu" id="guia-tabs"></div>
   <div id="guia-content"></div>
 </div>
 
@@ -317,7 +319,15 @@ main{flex:1;overflow-y:auto;padding:16px}
 <div class="toast" id="toast">✓ Copiado</div>
 
 <script>
-// BASE DE DATOS GUIA LOCAL
+// ==========================================
+// CONFIGURACIÓN DE BIENVENIDA (EDITABLE POR TEMPORADA)
+// Modifica los textos entre comillas según la temporada del año.
+// ==========================================
+const bienvenidaTextoES = "Nelly y Marcelo están complacidos de tenerlos como huéspedes. Todo lo que necesitan para su estancia inolvidable en Coyoacán está aquí listo para ustedes.";
+const bienvenidaTextoEN = "Nelly and Marcelo are absolutely pleased to have you as our guests. Everything you need for an unforgettable stay in Coyoacan is ready for you.";
+
+
+// BASE DE DATOS GUIA LOCAL ACTUALIZADA
 const guiaData = {
   museos: { icon: "🏛️", title: "Museos", items: [
     {n:"Museo Frida Kahlo", d:"La famosa 'Casa Azul'. Se requiere comprar boleto en línea con días de anticipación.", q:"Museo Frida Kahlo Coyoacan", i:"🎨"},
@@ -331,10 +341,20 @@ const guiaData = {
     {n:"Capilla de Santa Catarina", d:"Pequeña, pintoresca y rodeada de callejones coloniales hermosos.", q:"Capilla de Santa Catarina Coyoacan", i:"⛪"}
   ]},
   restaurantes: { icon: "🍽️", title: "Restaurantes", items: [
+    {n:"El Huequito", d:"Los mejores tacos al pastor de la zona con su receta tradicional cortada en rebanadas perfectas. Un clásico imperdible de la CDMX.", q:"El Huequito Coyoacan", i:"🌮"},
+    {n:"Tortas Pepe's", d:"Tortas gigantes tradicionales, súper icónicas, abundantes y con un gran sabor de barrio.", q:"Tortas Pepes Coyoacan", i:"🥪"},
+    {n:"Leo's Pizza", d:"Deliciosas pizzas artesanales con un ambiente acogedor, ideal para una cena casual relajada.", q:"Leos Pizza Coyoacan", i:"🍕"},
     {n:"Tía Berta", d:"Desayuno: Chilaquiles legendarios de tradición familiar. Imperdible ir temprano.", q:"Restaurante Tia Berta", i:"🍳"},
-    {n:"Mercado de Coyoacán", d:"Económico: Desayuna o come delicioso y a muy buen precio. Hay increíbles antojitos, carnitas, barbacoa y tostadas.", q:"Mercado de Coyoacán", i:"🍲"},
-    {n:"Los Danzantes", d:"Comida: Alta cocina mexicana frente al Jardín Centenario. Ideal para la tarde.", q:"Los Danzantes Coyoacan", i:"🌮"},
-    {n:"Corazón de Maguey", d:"Cena: Excelente mezcalería y gastronomía nocturna con gran ambiente.", q:"Corazon de Maguey Coyoacan", i:"🍸"}
+    {n:"Mercado de Coyoacán", d:"Económico: Antojitos, deliciosas tostadas tradicionales, carnitas y barbacoa a excelente precio.", q:"Mercado de Coyoacán", i:"🍲"},
+    {n:"Los Danzantes", d:"Comida: Alta cocina mexicana contemporánea frente al Jardín Centenario. Una experiencia gourmet.", q:"Los Danzantes Coyoacan", i:"🌮"},
+    {n:"Corazón de Maguey", d:"Cena: Excelente mezcalería y gastronomía artesanal nocturna con gran ambiente.", q:"Corazon de Maguey Coyoacan", i:"🍸"}
+  ]},
+  cafes: { icon: "☕", title: "Cafeterías", items: [
+    {n:"El Jarocho y La Hija del Jarocho", d:"El café más tradicional y querido de Coyoacán. Pide un café de olla con una dona o campechana.", q:"El Jarocho Coyoacan", i:"☕"},
+    {n:"Café Avellaneda", d:"Café de especialidad en un espacio íntimo. Expertos en métodos de extracción y granos selectos.", q:"Cafe Avellaneda Coyoacan", i:"☕"},
+    {n:"Tierra Garat", d:"Excelente concepto mexicano que rinde culto al café y al chocolate en un ambiente hermoso.", q:"Tierra Garat Coyoacan", i:"🍫"},
+    {n:"El Olvido", d:"Una acogedora cafetería y restaurante con un jardín romántico escondido, ideal para conversar.", q:"Cafe El Olvido Coyoacan", i:"🌿"},
+    {n:"Starbucks Coyoacán", d:"El clásico internacional con una ubicación privilegiada y bonita terraza para trabajar o relajarse.", q:"Starbucks Coyoacan", i:"☕"}
   ]},
   amenidades: { icon: "🌳", title: "Amenidades y Paseos", items: [
     {n:"Mercado de Coyoacán", d:"Artesanías, colores y el verdadero ambiente de barrio. Perfecto para souvenirs.", q:"Mercado de Coyoacán", i:"🛍️"},
@@ -352,9 +372,10 @@ const guiaData = {
     {n:"Oasis Coyoacán", d:"Hermosa plaza al aire libre con un gran lago artificial.", q:"Oasis Coyoacan", i:"🛍️"},
     {n:"Plaza Universidad", d:"Un centro comercial clásico y muy completo con cines y restaurantes.", q:"Plaza Universidad", i:"🏬"}
   ]},
-  hospitales: { icon: "🏥", title: "Hospitales", items: [
-    {n:"Hospital HMG Coyoacán", d:"Hospital privado con urgencias 24 hrs, muy cerca de la propiedad.", q:"Hospital HMG Coyoacan", i:"🏥"},
-    {n:"Hospital General Xoco", d:"Hospital público de emergencias.", q:"Hospital General Xoco", i:"🏥"}
+  hospitales: { icon: "🏥", title: "Hospitales e Higiene", items: [
+    {n:"Hospital Polar San José", d:"Atención médica cercana y profesional de confianza para cualquier consulta general o urgencia.", q:"Hospital Polar San Jose CDMX", i:"🏥"},
+    {n:"Hospital HMG Coyoacán", d:"Hospital privado con urgencias las 24 hrs, muy completo y cercano a la propiedad.", q:"Hospital HMG Coyoacan", i:"🏥"},
+    {n:"Hospital General Xoco", d:"Hospital público metropolitano de emergencias.", q:"Hospital General Xoco", i:"🏥"}
   ]},
   farmacias: { icon: "💊", title: "Farmacias", items: [
     {n:"Farmacia San Pablo", d:"Servicio 24 horas y entregas a domicilio.", q:"Farmacia San Pablo Coyoacan", i:"⚕️"},
@@ -379,16 +400,14 @@ const guiaData = {
 };
 
 const catNames = {
-  es: {cat_museos:"Museos", cat_iglesias:"Iglesias Históricas", cat_restaurantes:"Restaurantes", cat_amenidades:"Amenidades y Paseos", cat_estadios:"Estadios y Conciertos", cat_malls:"Plazas Comerciales", cat_hospitales:"Hospitales", cat_farmacias:"Farmacias", cat_tiendas:"Tiendas y Supermercados", cat_gasolineras:"Gasolineras", cat_transporte:"Transporte y Movilidad"},
-  en: {cat_museos:"Museums", cat_iglesias:"Historic Churches", cat_restaurantes:"Restaurants", cat_amenidades:"Parks & Amenities", cat_estadios:"Stadiums & Concerts", cat_malls:"Shopping Malls", cat_hospitales:"Hospitals", cat_farmacias:"Pharmacies", cat_tiendas:"Stores & Supermarkets", cat_gasolineras:"Gas Stations", cat_transporte:"Transport & Mobility"}
+  es: {cat_museos:"Museos", cat_iglesias:"Iglesias", cat_restaurantes:"Restaurantes", cat_cafes:"Cafeterías", cat_amenidades:"Paseos", cat_estadios:"Estadios", cat_malls:"Plazas", cat_hospitales:"Hospitales", cat_farmacias:"Farmacias", cat_tiendas:"Súper/Tiendas", cat_gasolineras:"Gasolineras", cat_transporte:"Transporte"},
+  en: {cat_museos:"Museums", cat_iglesias:"Churches", cat_restaurantes:"Restaurants", cat_cafes:"Coffee Shops", cat_amenidades:"Parks", cat_estadios:"Stadiums", cat_malls:"Malls", cat_hospitales:"Hospitals", cat_farmacias:"Pharmacies", cat_tiendas:"Stores", cat_gasolineras:"Gas Stations", cat_transporte:"Transport"}
 };
 
-// TRADUCCIONES ESTRATÉGICAS (Inglés solo para navegación y reglas vitales)
 const T = {
   es:{
     nav_welcome:"Inicio", nav_manual:"Manual", nav_guide:"Guía Local", nav_emergency:"Ayuda", nav_faq:"FAQ",
-    welcome_title:"¡Bienvenido a La Casa de mi Abuelo!",
-    welcome_sub:"Nelly y Marcelo están felices de recibirte. Todo lo que necesitas para tu estancia en Coyoacán está aquí.",
+    welcome_title:"¡Bienvenido!",
     quick_access:"Acceso rápido", btn_wifi:"Wi-Fi", btn_how:"Volver a Casa", btn_emergency:"Emergencias", btn_explore:"Explorar",
     wifi_title:"Conexión Wi-Fi", copy_btn:"Copiar", check_title:"Check-in / Check-out",
     rules_title:"Reglas de la Casa",
@@ -411,8 +430,7 @@ const T = {
   },
   en:{
     nav_welcome:"Home", nav_manual:"Manual", nav_guide:"Local Guide", nav_emergency:"Help", nav_faq:"FAQ",
-    welcome_title:"Welcome to La Casa de mi Abuelo!",
-    welcome_sub:"Nelly and Marcelo are happy to host you. Everything you need is right here.",
+    welcome_title:"Welcome!",
     quick_access:"Quick Access", btn_wifi:"Wi-Fi", btn_how:"Back to House", btn_emergency:"Emergency", btn_explore:"Explore",
     wifi_title:"Wi-Fi Connection", copy_btn:"Copy", check_title:"Check-in / Check-out",
     rules_title:"House Rules",
@@ -438,99 +456,10 @@ const T = {
 let lang = 'es';
 let currentGuiaCat = 'museos';
 
+// CONSTRUCCIÓN DEL MENÚ EN MATRIZ CUADRADA
 function buildGuiaTabs(){
   const container = document.getElementById('guia-tabs');
   let html = '';
   for(const key in guiaData){
     const cat = guiaData[key];
-    const activeCls = key === currentGuiaCat ? 'active' : '';
-    const title = catNames[lang]['cat_'+key] || cat.title;
-    html += `<button class="guia-tab ${activeCls}" onclick="showGuiaCategory('${key}')">${cat.icon} <span>${title}</span></button>`;
-  }
-  container.innerHTML = html;
-}
-
-function showGuiaCategory(key){
-  currentGuiaCat = key;
-  buildGuiaTabs();
-  const container = document.getElementById('guia-content');
-  const cat = guiaData[key];
-  const title = catNames[lang]['cat_'+key] || cat.title;
-  let html = `<div class="sec-heading">${cat.icon} <span>${title}</span></div>`;
-  cat.items.forEach(l => {
-    let action = l.q.startsWith('http') ? `window.open('${l.q}', '_blank')` : `openMaps('${l.q}')`;
-    html += `
-      <div class="poi-card">
-        <div class="poi-img">${l.i}</div>
-        <div class="poi-body">
-          <div class="poi-name">${l.n}</div>
-          <div class="poi-desc">${l.d}</div>
-          <button class="maps-btn" onclick="${action}"><i data-lucide="navigation"></i><span data-i="how_to_get">${lang==='es'?'Cómo llegar / Abrir':'Get Directions'}</span></button>
-        </div>
-      </div>`;
-  });
-  container.innerHTML = html;
-  if(typeof lucide!=='undefined') lucide.createIcons();
-}
-
-function applyLang(){
-  const d = T[lang];
-  document.querySelectorAll('[data-i]').forEach(el=>{
-    const k = el.getAttribute('data-i');
-    if(d[k]) el.textContent = d[k];
-  });
-  
-  document.getElementById('langBtn').textContent = lang==='es'?'EN':'ES';
-  buildFAQ();
-  showGuiaCategory(currentGuiaCat); 
-  if(typeof lucide!=='undefined') lucide.createIcons();
-}
-
-function toggleLang(){
-  lang = lang==='es'?'en':'es';
-  applyLang();
-}
-
-function showSection(id, btn){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if(btn) btn.classList.add('active');
-}
-
-function copyWifi(pw){
-  navigator.clipboard.writeText(pw).catch(()=>{});
-  const t=document.getElementById('toast');
-  t.textContent = lang==='es'?'✓ Copiado':'✓ Copied';
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2000);
-}
-
-function openMaps(q){
-  window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q), '_blank');
-}
-
-function callNumber(n){ window.open('tel:+52'+n,'_self'); }
-
-function buildFAQ(){
-  const d=T[lang];
-  const list=document.getElementById('faq-list');
-  list.innerHTML='';
-  d.faq.forEach((item)=>{
-    const el=document.createElement('div');
-    el.className='faq-item';
-    el.innerHTML=`<div class="faq-q" onclick="toggleFaq(this)">${item.q}<i data-lucide="chevron-down"></i></div><div class="faq-a">${item.a}</div>`;
-    list.appendChild(el);
-  });
-}
-
-function toggleFaq(el){
-  el.parentElement.classList.toggle('open');
-}
-
-window.addEventListener('load',()=>{
-  applyLang(); 
-});
-</script>
-</body>
-</html>
+    const activeCls
