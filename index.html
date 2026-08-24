@@ -149,10 +149,6 @@
       align-items: center;
     }
 
-    .wifi-info font-size: 0.88rem; {
-      font-size: 0.88rem;
-    }
-
     .wifi-info strong {
       display: block;
       font-size: 0.95rem;
@@ -305,19 +301,19 @@
 
   <div id="loader">
     <i class="fas fa-spinner fa-spin fa-2x"></i>
-    <p id="loaderMsg">Conectando con la base de datos...</p>
+    <p>Cargando información...</p>
   </div>
 
   <div class="container" id="appContent" style="display: none;">
 
     <!-- INICIO -->
     <div id="tab-inicio" class="tab-content active">
-      <div class="card" id="cardBienvenida">
+      <div class="card">
         <div class="card-title"><i class="fas fa-heart"></i> ¡Bienvenidos!</div>
         <p id="txtBienvenida" style="font-size: 0.88rem; line-height: 1.45; color: var(--text-main);"></p>
       </div>
 
-      <div class="card" id="cardAcceso">
+      <div class="card">
         <div class="card-title"><i class="fas fa-door-open"></i> Acceso Principal</div>
         <div class="item-row">
           <div class="item-icon">🔢</div>
@@ -326,7 +322,7 @@
             <p><strong id="txtCodigoPuerta" style="font-size: 1.1rem; color: var(--primary);"></strong></p>
           </div>
         </div>
-        <div class="item-row" id="rowCheckin">
+        <div class="item-row">
           <div class="item-icon">🔑</div>
           <div class="item-text">
             <h4>Instrucciones</h4>
@@ -335,7 +331,7 @@
         </div>
       </div>
 
-      <div class="card" id="cardWifi">
+      <div class="card">
         <div class="card-title"><i class="fas fa-wifi"></i> Conexión Wi-Fi</div>
         <div id="wifiList"></div>
       </div>
@@ -406,7 +402,7 @@
   </nav>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrJBdfVGPvgL-8CWj15N-1pBkUlm8dfOcf6WWdFnOpyjdA2sxdRcTH9RS-VIhaaCvZ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzyyCMT0rGa4fnqs9b6r8qbAxfR5q3WnX1ru6vrulJ6bVSwYd5GPIol4Y21ncq1BZm/exec";
 
     const urlParams = new URLSearchParams(window.location.search);
     const depaParam = urlParams.get('depa') || 'abuelo';
@@ -432,197 +428,172 @@
       });
     }
 
-    // Callback de procesamiento
-    window.handleSheetResponse = function(data) {
-      try {
-        if (!data || data.status === "error") {
-          throw new Error(data ? data.message : "Sin respuesta");
-        }
+    function renderUI(data) {
+      document.getElementById('headerTitle').innerText = data.propiedad.nombre || "Mi Alojamiento";
+      document.getElementById('txtBienvenida').innerText = data.propiedad.mensajeBienvenida || "";
+      document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
+      document.getElementById('txtCheckin').innerText = data.propiedad.checkin || "";
 
-        // Header & Inicio
-        document.getElementById('headerTitle').innerText = data.propiedad.nombre || "Mi Alojamiento";
-        document.getElementById('txtBienvenida').innerText = data.propiedad.mensajeBienvenida || "";
-        document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
-        document.getElementById('txtCheckin').innerText = data.propiedad.checkin || "";
+      let wifiHtml = '';
+      if (data.propiedad.wifiNombre1) {
+        wifiHtml += `
+          <div class="wifi-block">
+            <div class="wifi-info">
+              <span>Red: ${data.propiedad.wifiNombre1}</span>
+              <strong>${data.propiedad.wifiPass1}</strong>
+            </div>
+            <button class="copy-btn" onclick="copyText('${data.propiedad.wifiPass1}', this)">
+              <i class="far fa-copy"></i> Copiar
+            </button>
+          </div>`;
+      }
+      if (data.propiedad.wifiNombre2) {
+        wifiHtml += `
+          <div class="wifi-block">
+            <div class="wifi-info">
+              <span>Red Secundaria: ${data.propiedad.wifiNombre2}</span>
+              <strong>${data.propiedad.wifiPass2}</strong>
+            </div>
+            <button class="copy-btn" onclick="copyText('${data.propiedad.wifiPass2}', this)">
+              <i class="far fa-copy"></i> Copiar
+            </button>
+          </div>`;
+      }
+      document.getElementById('wifiList').innerHTML = wifiHtml;
 
-        // Wi-Fi
-        let wifiHtml = '';
-        if (data.propiedad.wifiNombre1) {
-          wifiHtml += `
-            <div class="wifi-block">
-              <div class="wifi-info">
-                <span>Red: ${data.propiedad.wifiNombre1}</span>
-                <strong>${data.propiedad.wifiPass1}</strong>
+      let reglasHtml = '', basuraHtml = '', invMap = {};
+      if (data.manual) {
+        data.manual.forEach(item => {
+          if (item.seccion === 'regla') {
+            reglasHtml += `
+              <div class="item-row">
+                <div class="item-icon">${item.icono || '📌'}</div>
+                <div class="item-text">
+                  <h4>${item.titulo}</h4>
+                  <p>${item.detalle}</p>
+                </div>
+              </div>`;
+          } else if (item.seccion === 'basura') {
+            basuraHtml += `
+              <div class="item-row">
+                <div class="item-icon">${item.icono || '🗑️'}</div>
+                <div class="item-text">
+                  <h4>${item.titulo}</h4>
+                  <p>${item.detalle}</p>
+                </div>
+              </div>`;
+          } else if (item.seccion === 'inventario') {
+            if (!invMap[item.categoria]) invMap[item.categoria] = [];
+            invMap[item.categoria].push(item);
+          }
+        });
+      }
+      document.getElementById('reglasList').innerHTML = reglasHtml;
+      document.getElementById('basuraList').innerHTML = basuraHtml;
+
+      let invHtml = '';
+      for (let cat in invMap) {
+        invHtml += `
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+              <span>${cat}</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="accordion-content">
+              ${invMap[cat].map(i => `<p style="margin-bottom:6px;"><strong>${i.icono || '•'} ${i.titulo}:</strong> ${i.detalle}</p>`).join('')}
+            </div>
+          </div>`;
+      }
+      document.getElementById('inventarioList').innerHTML = invHtml;
+
+      let guiaCategorias = {};
+      if (data.guia) {
+        data.guia.forEach(place => {
+          let cat = String(place.categoria).toUpperCase();
+          if (!guiaCategorias[cat]) guiaCategorias[cat] = [];
+          guiaCategorias[cat].push(place);
+        });
+      }
+      let guiaHtml = '';
+      for (let cat in guiaCategorias) {
+        guiaHtml += `<div class="card"><div class="card-title">${cat}</div>`;
+        guiaCategorias[cat].forEach(p => {
+          let mapsUrl = String(p.maps).startsWith('http') ? p.maps : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.maps)}`;
+          guiaHtml += `
+            <div class="item-row">
+              <div class="item-icon">${p.icono || '📍'}</div>
+              <div class="item-text">
+                <h4>${p.nombre}</h4>
+                <p>${p.descripcion || ''}</p>
+                <a href="${mapsUrl}" target="_blank" class="maps-btn">
+                  <i class="fas fa-directions"></i> Ver en Google Maps
+                </a>
               </div>
-              <button class="copy-btn" onclick="copyText('${data.propiedad.wifiPass1}', this)">
-                <i class="far fa-copy"></i> Copiar
-              </button>
             </div>`;
-        }
-        if (data.propiedad.wifiNombre2) {
-          wifiHtml += `
-            <div class="wifi-block">
-              <div class="wifi-info">
-                <span>Red Secundaria: ${data.propiedad.wifiNombre2}</span>
-                <strong>${data.propiedad.wifiPass2}</strong>
+        });
+        guiaHtml += `</div>`;
+      }
+      document.getElementById('guiaList').innerHTML = guiaHtml;
+
+      let contactoHtml = '';
+      if (data.contactos) {
+        data.contactos.forEach(c => {
+          let phoneClean = String(c.telefono).replace(/\\D/g, '');
+          let actionBtn = phoneClean.length === 3 
+            ? `<a href="tel:${phoneClean}" class="contact-btn" style="background:#d9534f;"><i class="fas fa-phone"></i> Llamar</a>`
+            : `<a href="https://wa.me/52${phoneClean}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>`;
+
+          contactoHtml += `
+            <div class="contact-card">
+              <div>
+                <strong>${c.nombre}</strong>
+                <p style="font-size:0.8rem; color:var(--text-muted);">${c.telefono}</p>
               </div>
-              <button class="copy-btn" onclick="copyText('${data.propiedad.wifiPass2}', this)">
-                <i class="far fa-copy"></i> Copiar
-              </button>
+              ${actionBtn}
             </div>`;
-        }
-        document.getElementById('wifiList').innerHTML = wifiHtml;
+        });
+      }
+      document.getElementById('contactosList').innerHTML = contactoHtml;
 
-        // Manual
-        let reglasHtml = '', basuraHtml = '', invMap = {};
-        if (data.manual && data.manual.length > 0) {
-          data.manual.forEach(item => {
-            if (item.seccion === 'regla') {
-              reglasHtml += `
-                <div class="item-row">
-                  <div class="item-icon">${item.icono || '📌'}</div>
-                  <div class="item-text">
-                    <h4>${item.titulo}</h4>
-                    <p>${item.detalle}</p>
-                  </div>
-                </div>`;
-            } else if (item.seccion === 'basura') {
-              basuraHtml += `
-                <div class="item-row">
-                  <div class="item-icon">${item.icono || '🗑️'}</div>
-                  <div class="item-text">
-                    <h4>${item.titulo}</h4>
-                    <p>${item.detalle}</p>
-                  </div>
-                </div>`;
-            } else if (item.seccion === 'inventario') {
-              if (!invMap[item.categoria]) invMap[item.categoria] = [];
-              invMap[item.categoria].push(item);
-            }
-          });
-        }
-        document.getElementById('reglasList').innerHTML = reglasHtml;
-        document.getElementById('basuraList').innerHTML = basuraHtml;
-
-        let invHtml = '';
-        for (let cat in invMap) {
-          invHtml += `
+      let faqHtml = '';
+      if (data.faq) {
+        data.faq.forEach(f => {
+          faqHtml += `
             <div class="accordion-item">
               <button class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
-                <span>${cat}</span>
+                <span>${f.pregunta}</span>
                 <i class="fas fa-chevron-down"></i>
               </button>
               <div class="accordion-content">
-                ${invMap[cat].map(i => `<p style="margin-bottom:6px;"><strong>${i.icono || '•'} ${i.titulo}:</strong> ${i.detalle}</p>`).join('')}
+                <p>${f.respuesta}</p>
               </div>
             </div>`;
-        }
-        document.getElementById('inventarioList').innerHTML = invHtml;
-
-        // Guía Local
-        let guiaCategorias = {};
-        if (data.guia && data.guia.length > 0) {
-          data.guia.forEach(place => {
-            let cat = String(place.categoria).toUpperCase();
-            if (!guiaCategorias[cat]) guiaCategorias[cat] = [];
-            guiaCategorias[cat].push(place);
-          });
-        }
-        let guiaHtml = '';
-        for (let cat in guiaCategorias) {
-          guiaHtml += `<div class="card"><div class="card-title">${cat}</div>`;
-          guiaCategorias[cat].forEach(p => {
-            let mapsUrl = String(p.maps).startsWith('http') ? p.maps : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.maps)}`;
-            guiaHtml += `
-              <div class="item-row">
-                <div class="item-icon">${p.icono || '📍'}</div>
-                <div class="item-text">
-                  <h4>${p.nombre}</h4>
-                  <p>${p.descripcion || ''}</p>
-                  <a href="${mapsUrl}" target="_blank" class="maps-btn">
-                    <i class="fas fa-directions"></i> Ver en Google Maps
-                  </a>
-                </div>
-              </div>`;
-          });
-          guiaHtml += `</div>`;
-        }
-        document.getElementById('guiaList').innerHTML = guiaHtml;
-
-        // Contactos
-        let contactoHtml = '';
-        if (data.contactos && data.contactos.length > 0) {
-          data.contactos.forEach(c => {
-            let phoneClean = String(c.telefono).replace(/\\D/g, '');
-            let actionBtn = phoneClean.length === 3 
-              ? `<a href="tel:${phoneClean}" class="contact-btn" style="background:#d9534f;"><i class="fas fa-phone"></i> Llamar</a>`
-              : `<a href="https://wa.me/52${phoneClean}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>`;
-
-            contactoHtml += `
-              <div class="contact-card">
-                <div>
-                  <strong>${c.nombre}</strong>
-                  <p style="font-size:0.8rem; color:var(--text-muted);">${c.telefono}</p>
-                </div>
-                ${actionBtn}
-              </div>`;
-          });
-        }
-        document.getElementById('contactosList').innerHTML = contactoHtml;
-
-        // FAQ
-        let faqHtml = '';
-        if (data.faq && data.faq.length > 0) {
-          data.faq.forEach(f => {
-            faqHtml += `
-              <div class="accordion-item">
-                <button class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
-                  <span>${f.pregunta}</span>
-                  <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="accordion-content">
-                  <p>${f.respuesta}</p>
-                </div>
-              </div>`;
-          });
-        }
-        document.getElementById('faqList').innerHTML = faqHtml;
-
-        // Mostrar Interfaz
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('appContent').style.display = 'block';
-
-      } catch (err) {
-        document.getElementById('loader').innerHTML = `<p style="color:#d9534f;">Error al procesar los datos de la hoja.</p>`;
-        console.error(err);
+        });
       }
-    };
+      document.getElementById('faqList').innerHTML = faqHtml;
 
-    // Cargador JSONP con Timeout
-    function startDataFetch() {
-      const scriptTag = document.createElement('script');
-      scriptTag.src = `${SCRIPT_URL}?depa=${depaParam}&callback=handleSheetResponse`;
-      
-      const timeoutId = setTimeout(() => {
-        document.getElementById('loader').innerHTML = `
-          <p style="color:#d9534f; margin-bottom: 10px;">Tiempo de espera agotado al conectar con Google Sheets.</p>
-          <button onclick="location.reload()" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600;">Reintentar</button>
-        `;
-      }, 10000);
-
-      scriptTag.onload = () => clearTimeout(timeoutId);
-      scriptTag.onerror = () => {
-        clearTimeout(timeoutId);
-        document.getElementById('loader').innerHTML = `
-          <p style="color:#d9534f; margin-bottom: 10px;">Error al conectar con el servidor.</p>
-          <button onclick="location.reload()" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600;">Reintentar</button>
-        `;
-      };
-
-      document.body.appendChild(scriptTag);
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
     }
 
-    startDataFetch();
+    async function fetchData() {
+      try {
+        const response = await fetch(`${SCRIPT_URL}?depa=${depaParam}`, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        const data = await response.json();
+        renderUI(data);
+      } catch (err) {
+        console.error("Error al cargar datos:", err);
+        document.getElementById('loader').innerHTML = `
+          <p style="color:#d9534f; margin-bottom: 12px;">Error al conectar con la base de datos.</p>
+          <button onclick="location.reload()" style="padding: 8px 18px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Reintentar</button>
+        `;
+      }
+    }
+
+    fetchData();
   </script>
 </body>
 </html>
