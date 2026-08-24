@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Guía del Huésped - Coyoacán</title>
   
-  <!-- FontAwesome & Google Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -36,7 +35,6 @@
       padding-bottom: calc(var(--bottom-nav-h) + 20px);
     }
 
-    /* HEADER */
     header {
       background-color: var(--primary);
       color: white;
@@ -62,7 +60,6 @@
       margin-top: 2px;
     }
 
-    /* BOTTOM NAV */
     nav.bottom-nav {
       position: fixed;
       bottom: 0;
@@ -103,7 +100,6 @@
       font-weight: 700;
     }
 
-    /* CONTENEDOR PRINCIPAL */
     .container {
       max-width: 600px;
       margin: 0 auto;
@@ -124,7 +120,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* TARJETAS */
     .card {
       background: var(--card-bg);
       border-radius: 14px;
@@ -144,11 +139,6 @@
       gap: 10px;
     }
 
-    .card-title i {
-      font-size: 1.1rem;
-    }
-
-    /* WIFI ITEMS */
     .wifi-block {
       background: var(--accent-blue);
       border-radius: 10px;
@@ -159,7 +149,7 @@
       align-items: center;
     }
 
-    .wifi-info {
+    .wifi-info font-size: 0.88rem; {
       font-size: 0.88rem;
     }
 
@@ -185,7 +175,6 @@
       gap: 6px;
     }
 
-    /* LISTAS CON ICONOS */
     .item-row {
       display: flex;
       align-items: flex-start;
@@ -218,7 +207,6 @@
       line-height: 1.35;
     }
 
-    /* ACORDEONES (INVENTARIO & FAQ) */
     .accordion-item {
       border-bottom: 1px solid #edf2f7;
     }
@@ -258,7 +246,6 @@
       transform: rotate(180deg);
     }
 
-    /* GUIA LOCAL: BOTON MAPS */
     .maps-btn {
       display: inline-flex;
       align-items: center;
@@ -270,7 +257,6 @@
       font-weight: 600;
     }
 
-    /* CONTACTOS DIRECTOS */
     .contact-card {
       display: flex;
       justify-content: space-between;
@@ -294,7 +280,6 @@
       gap: 5px;
     }
 
-    /* LOADER */
     #loader {
       display: flex;
       flex-direction: column;
@@ -304,12 +289,13 @@
       color: var(--primary);
       font-weight: 600;
       gap: 12px;
+      text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
   <header>
     <div class="header-info">
       <h1 id="headerTitle">Cargando...</h1>
@@ -317,16 +303,14 @@
     </div>
   </header>
 
-  <!-- LOADER -->
   <div id="loader">
     <i class="fas fa-spinner fa-spin fa-2x"></i>
-    <p>Cargando información...</p>
+    <p id="loaderMsg">Conectando con la base de datos...</p>
   </div>
 
-  <!-- CONTENIDO PRINCIPAL -->
   <div class="container" id="appContent" style="display: none;">
 
-    <!-- 1. PESTAÑA: INICIO -->
+    <!-- INICIO -->
     <div id="tab-inicio" class="tab-content active">
       <div class="card" id="cardBienvenida">
         <div class="card-title"><i class="fas fa-heart"></i> ¡Bienvenidos!</div>
@@ -357,7 +341,7 @@
       </div>
     </div>
 
-    <!-- 2. PESTAÑA: MANUAL -->
+    <!-- MANUAL -->
     <div id="tab-manual" class="tab-content">
       <div class="card">
         <div class="card-title"><i class="fas fa-book-open"></i> Reglas de la Casa</div>
@@ -375,12 +359,12 @@
       </div>
     </div>
 
-    <!-- 3. PESTAÑA: GUÍA LOCAL -->
+    <!-- GUIA LOCAL -->
     <div id="tab-guia" class="tab-content">
       <div id="guiaList"></div>
     </div>
 
-    <!-- 4. PESTAÑA: AYUDA / CONTACTO -->
+    <!-- AYUDA -->
     <div id="tab-ayuda" class="tab-content">
       <div class="card">
         <div class="card-title"><i class="fas fa-phone-alt"></i> Contactos de Emergencia y Soporte</div>
@@ -388,7 +372,7 @@
       </div>
     </div>
 
-    <!-- 5. PESTAÑA: FAQ -->
+    <!-- FAQ -->
     <div id="tab-faq" class="tab-content">
       <div class="card">
         <div class="card-title"><i class="fas fa-question-circle"></i> Preguntas Frecuentes</div>
@@ -398,7 +382,6 @@
 
   </div>
 
-  <!-- BARRA DE NAVEGACIÓN INFERIOR -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="switchTab('inicio')">
       <i class="fas fa-home"></i>
@@ -449,14 +432,14 @@
       });
     }
 
-    // Procesa los datos recibidos de Google Sheets
-    window.recibirDatosSheet = function(data) {
+    // Callback de procesamiento
+    window.handleSheetResponse = function(data) {
       try {
-        if (!data || !data.propiedad) {
-          throw new Error("Estructura inválida");
+        if (!data || data.status === "error") {
+          throw new Error(data ? data.message : "Sin respuesta");
         }
 
-        // 1. CARGAR PROPIEDAD
+        // Header & Inicio
         document.getElementById('headerTitle').innerText = data.propiedad.nombre || "Mi Alojamiento";
         document.getElementById('txtBienvenida').innerText = data.propiedad.mensajeBienvenida || "";
         document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
@@ -490,9 +473,9 @@
         }
         document.getElementById('wifiList').innerHTML = wifiHtml;
 
-        // 2. CARGAR MANUAL
+        // Manual
         let reglasHtml = '', basuraHtml = '', invMap = {};
-        if (data.manual) {
+        if (data.manual && data.manual.length > 0) {
           data.manual.forEach(item => {
             if (item.seccion === 'regla') {
               reglasHtml += `
@@ -518,7 +501,6 @@
             }
           });
         }
-
         document.getElementById('reglasList').innerHTML = reglasHtml;
         document.getElementById('basuraList').innerHTML = basuraHtml;
 
@@ -537,16 +519,15 @@
         }
         document.getElementById('inventarioList').innerHTML = invHtml;
 
-        // 3. CARGAR GUÍA LOCAL
+        // Guía Local
         let guiaCategorias = {};
-        if (data.guia) {
+        if (data.guia && data.guia.length > 0) {
           data.guia.forEach(place => {
             let cat = String(place.categoria).toUpperCase();
             if (!guiaCategorias[cat]) guiaCategorias[cat] = [];
             guiaCategorias[cat].push(place);
           });
         }
-
         let guiaHtml = '';
         for (let cat in guiaCategorias) {
           guiaHtml += `<div class="card"><div class="card-title">${cat}</div>`;
@@ -568,9 +549,9 @@
         }
         document.getElementById('guiaList').innerHTML = guiaHtml;
 
-        // 4. CARGAR CONTACTOS
+        // Contactos
         let contactoHtml = '';
-        if (data.contactos) {
+        if (data.contactos && data.contactos.length > 0) {
           data.contactos.forEach(c => {
             let phoneClean = String(c.telefono).replace(/\\D/g, '');
             let actionBtn = phoneClean.length === 3 
@@ -589,9 +570,9 @@
         }
         document.getElementById('contactosList').innerHTML = contactoHtml;
 
-        // 5. CARGAR FAQ
+        // FAQ
         let faqHtml = '';
-        if (data.faq) {
+        if (data.faq && data.faq.length > 0) {
           data.faq.forEach(f => {
             faqHtml += `
               <div class="accordion-item">
@@ -607,27 +588,41 @@
         }
         document.getElementById('faqList').innerHTML = faqHtml;
 
-        // Ocultar Loader y Mostrar App
+        // Mostrar Interfaz
         document.getElementById('loader').style.display = 'none';
         document.getElementById('appContent').style.display = 'block';
 
       } catch (err) {
-        document.getElementById('loader').innerHTML = `<p style="color:red;">Error al procesar datos.</p>`;
+        document.getElementById('loader').innerHTML = `<p style="color:#d9534f;">Error al procesar los datos de la hoja.</p>`;
         console.error(err);
       }
     };
 
-    // Consulta los datos usando JSONP
-    function loadAppData() {
+    // Cargador JSONP con Timeout
+    function startDataFetch() {
       const scriptTag = document.createElement('script');
-      scriptTag.src = `${SCRIPT_URL}?depa=${depaParam}&callback=recibirDatosSheet`;
-      scriptTag.onerror = function() {
-        document.getElementById('loader').innerHTML = `<p style="color:red;">Error al conectar con la hoja de cálculo.</p>`;
+      scriptTag.src = `${SCRIPT_URL}?depa=${depaParam}&callback=handleSheetResponse`;
+      
+      const timeoutId = setTimeout(() => {
+        document.getElementById('loader').innerHTML = `
+          <p style="color:#d9534f; margin-bottom: 10px;">Tiempo de espera agotado al conectar con Google Sheets.</p>
+          <button onclick="location.reload()" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600;">Reintentar</button>
+        `;
+      }, 10000);
+
+      scriptTag.onload = () => clearTimeout(timeoutId);
+      scriptTag.onerror = () => {
+        clearTimeout(timeoutId);
+        document.getElementById('loader').innerHTML = `
+          <p style="color:#d9534f; margin-bottom: 10px;">Error al conectar con el servidor.</p>
+          <button onclick="location.reload()" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600;">Reintentar</button>
+        `;
       };
+
       document.body.appendChild(scriptTag);
     }
 
-    loadAppData();
+    startDataFetch();
   </script>
 </body>
 </html>
