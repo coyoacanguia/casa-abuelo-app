@@ -103,7 +103,7 @@
       font-weight: 700;
     }
 
-    /* SECCIONES Y CONTENEDOR */
+    /* CONTENEDOR PRINCIPAL */
     .container {
       max-width: 600px;
       margin: 0 auto;
@@ -323,7 +323,7 @@
     <p>Cargando información...</p>
   </div>
 
-  <!-- MAIN CONTAINER -->
+  <!-- CONTENIDO PRINCIPAL -->
   <div class="container" id="appContent" style="display: none;">
 
     <!-- 1. PESTAÑA: INICIO -->
@@ -398,7 +398,7 @@
 
   </div>
 
-  <!-- NAVEGACIÓN INFERIOR -->
+  <!-- BARRA DE NAVEGACIÓN INFERIOR -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="switchTab('inicio')">
       <i class="fas fa-home"></i>
@@ -423,14 +423,11 @@
   </nav>
 
   <script>
-    // URL DE TU APPS SCRIPT
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrJBdfVGPvgL-8CWj15N-1pBkUlm8dfOcf6WWdFnOpyjdA2sxdRcTH9RS-VIhaaCvZ/exec";
 
-    // Detectar departamento por URL (?depa=rinconcito o ?depa=abuelo)
     const urlParams = new URLSearchParams(window.location.search);
     const depaParam = urlParams.get('depa') || 'abuelo';
 
-    // Función para cambiar de pestaña
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -444,7 +441,6 @@
       window.scrollTo(0, 0);
     }
 
-    // Copiar al portapapeles
     function copyText(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
         const originalText = btn.innerHTML;
@@ -453,13 +449,14 @@
       });
     }
 
-    // Cargar datos desde Apps Script
-    async function loadAppData() {
+    // Procesa los datos recibidos de Google Sheets
+    window.recibirDatosSheet = function(data) {
       try {
-        const res = await fetch(`${SCRIPT_URL}?depa=${depaParam}`);
-        const data = await res.json();
+        if (!data || !data.propiedad) {
+          throw new Error("Estructura inválida");
+        }
 
-        // 1. CARGAR PROPIEDAD & HEADER
+        // 1. CARGAR PROPIEDAD
         document.getElementById('headerTitle').innerText = data.propiedad.nombre || "Mi Alojamiento";
         document.getElementById('txtBienvenida').innerText = data.propiedad.mensajeBienvenida || "";
         document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
@@ -495,30 +492,32 @@
 
         // 2. CARGAR MANUAL
         let reglasHtml = '', basuraHtml = '', invMap = {};
-        data.manual.forEach(item => {
-          if (item.seccion === 'regla') {
-            reglasHtml += `
-              <div class="item-row">
-                <div class="item-icon">${item.icono || '📌'}</div>
-                <div class="item-text">
-                  <h4>${item.titulo}</h4>
-                  <p>${item.detalle}</p>
-                </div>
-              </div>`;
-          } else if (item.seccion === 'basura') {
-            basuraHtml += `
-              <div class="item-row">
-                <div class="item-icon">${item.icono || '🗑️'}</div>
-                <div class="item-text">
-                  <h4>${item.titulo}</h4>
-                  <p>${item.detalle}</p>
-                </div>
-              </div>`;
-          } else if (item.seccion === 'inventario') {
-            if (!invMap[item.categoria]) invMap[item.categoria] = [];
-            invMap[item.categoria].push(item);
-          }
-        });
+        if (data.manual) {
+          data.manual.forEach(item => {
+            if (item.seccion === 'regla') {
+              reglasHtml += `
+                <div class="item-row">
+                  <div class="item-icon">${item.icono || '📌'}</div>
+                  <div class="item-text">
+                    <h4>${item.titulo}</h4>
+                    <p>${item.detalle}</p>
+                  </div>
+                </div>`;
+            } else if (item.seccion === 'basura') {
+              basuraHtml += `
+                <div class="item-row">
+                  <div class="item-icon">${item.icono || '🗑️'}</div>
+                  <div class="item-text">
+                    <h4>${item.titulo}</h4>
+                    <p>${item.detalle}</p>
+                  </div>
+                </div>`;
+            } else if (item.seccion === 'inventario') {
+              if (!invMap[item.categoria]) invMap[item.categoria] = [];
+              invMap[item.categoria].push(item);
+            }
+          });
+        }
 
         document.getElementById('reglasList').innerHTML = reglasHtml;
         document.getElementById('basuraList').innerHTML = basuraHtml;
@@ -532,32 +531,34 @@
                 <i class="fas fa-chevron-down"></i>
               </button>
               <div class="accordion-content">
-                ${invMap[cat].map(i => `<p><strong>${i.icono || '•'} ${i.titulo}:</strong> ${i.detalle}</p>`).join('')}
+                ${invMap[cat].map(i => `<p style="margin-bottom:6px;"><strong>${i.icono || '•'} ${i.titulo}:</strong> ${i.detalle}</p>`).join('')}
               </div>
             </div>`;
         }
         document.getElementById('inventarioList').innerHTML = invHtml;
 
-        // 3. CARGAR GUIA LOCAL
+        // 3. CARGAR GUÍA LOCAL
         let guiaCategorias = {};
-        data.guia.forEach(place => {
-          let cat = place.categoria.toUpperCase();
-          if (!guiaCategorias[cat]) guiaCategorias[cat] = [];
-          guiaCategorias[cat].push(place);
-        });
+        if (data.guia) {
+          data.guia.forEach(place => {
+            let cat = String(place.categoria).toUpperCase();
+            if (!guiaCategorias[cat]) guiaCategorias[cat] = [];
+            guiaCategorias[cat].push(place);
+          });
+        }
 
         let guiaHtml = '';
         for (let cat in guiaCategorias) {
           guiaHtml += `<div class="card"><div class="card-title">${cat}</div>`;
           guiaCategorias[cat].forEach(p => {
-            let mapUrl = p.maps.startsWith('http') ? p.maps : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.maps)}`;
+            let mapsUrl = String(p.maps).startsWith('http') ? p.maps : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.maps)}`;
             guiaHtml += `
               <div class="item-row">
                 <div class="item-icon">${p.icono || '📍'}</div>
                 <div class="item-text">
                   <h4>${p.nombre}</h4>
                   <p>${p.descripcion || ''}</p>
-                  <a href="${mapUrl}" target="_blank" class="maps-btn">
+                  <a href="${mapsUrl}" target="_blank" class="maps-btn">
                     <i class="fas fa-directions"></i> Ver en Google Maps
                   </a>
                 </div>
@@ -569,47 +570,61 @@
 
         // 4. CARGAR CONTACTOS
         let contactoHtml = '';
-        data.contactos.forEach(c => {
-          let phoneClean = c.telefono.replace(/\\D/g, '');
-          let actionBtn = phoneClean.length === 3 
-            ? `<a href="tel:${phoneClean}" class="contact-btn" style="background:#d9534f;"><i class="fas fa-phone"></i> Llamar</a>`
-            : `<a href="https://wa.me/52${phoneClean}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>`;
+        if (data.contactos) {
+          data.contactos.forEach(c => {
+            let phoneClean = String(c.telefono).replace(/\\D/g, '');
+            let actionBtn = phoneClean.length === 3 
+              ? `<a href="tel:${phoneClean}" class="contact-btn" style="background:#d9534f;"><i class="fas fa-phone"></i> Llamar</a>`
+              : `<a href="https://wa.me/52${phoneClean}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>`;
 
-          contactoHtml += `
-            <div class="contact-card">
-              <div>
-                <strong>${c.nombre}</strong>
-                <p style="font-size:0.8rem; color:var(--text-muted);">${c.telefono}</p>
-              </div>
-              ${actionBtn}
-            </div>`;
-        });
+            contactoHtml += `
+              <div class="contact-card">
+                <div>
+                  <strong>${c.nombre}</strong>
+                  <p style="font-size:0.8rem; color:var(--text-muted);">${c.telefono}</p>
+                </div>
+                ${actionBtn}
+              </div>`;
+          });
+        }
         document.getElementById('contactosList').innerHTML = contactoHtml;
 
         // 5. CARGAR FAQ
         let faqHtml = '';
-        data.faq.forEach(f => {
-          faqHtml += `
-            <div class="accordion-item">
-              <button class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
-                <span>${f.pregunta}</span>
-                <i class="fas fa-chevron-down"></i>
-              </button>
-              <div class="accordion-content">
-                <p>${f.respuesta}</p>
-              </div>
-            </div>`;
-        });
+        if (data.faq) {
+          data.faq.forEach(f => {
+            faqHtml += `
+              <div class="accordion-item">
+                <button class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+                  <span>${f.pregunta}</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <p>${f.respuesta}</p>
+                </div>
+              </div>`;
+          });
+        }
         document.getElementById('faqList').innerHTML = faqHtml;
 
-        // Mostrar contenido
+        // Ocultar Loader y Mostrar App
         document.getElementById('loader').style.display = 'none';
         document.getElementById('appContent').style.display = 'block';
 
       } catch (err) {
-        document.getElementById('loader').innerHTML = `<p style="color:red;">Error al cargar datos. Verifica la conexión.</p>`;
+        document.getElementById('loader').innerHTML = `<p style="color:red;">Error al procesar datos.</p>`;
         console.error(err);
       }
+    };
+
+    // Consulta los datos usando JSONP
+    function loadAppData() {
+      const scriptTag = document.createElement('script');
+      scriptTag.src = `${SCRIPT_URL}?depa=${depaParam}&callback=recibirDatosSheet`;
+      scriptTag.onerror = function() {
+        document.getElementById('loader').innerHTML = `<p style="color:red;">Error al conectar con la hoja de cálculo.</p>`;
+      };
+      document.body.appendChild(scriptTag);
     }
 
     loadAppData();
