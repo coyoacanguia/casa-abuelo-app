@@ -1,535 +1,618 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>La Casa de mi Abuelo</title>
-<script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --cobalt:#0047AB;--cobalt-light:#E8EEFA;--cobalt-dark:#00337A;
-  --cream:#F5F5DC;--cream-dark:#E8E8C0;
-  --terra:#E2725B;--terra-light:#FAF0EE;--terra-dark:#B85542;
-  --text:#1a1a1a;--text-muted:#555;--border:#ddd;
-  --card:#fff;--bg:#F5F5DC;
-}
-body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;max-width:420px;margin:0 auto;position:relative}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Guía del Huésped - Coyoacán</title>
+  
+  <!-- FontAwesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-/* HEADER */
-header{background:var(--cobalt);color:#fff;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{font-size:17px;font-weight:600;letter-spacing:0.3px}
-.logo span{color:#F5C47A;font-size:13px;display:block;font-weight:400;letter-spacing:1px}
-.lang-btn{background:rgba(255,255,255,0.18);border:none;color:#fff;padding:5px 11px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:500}
-.lang-btn:hover{background:rgba(255,255,255,0.3)}
+  <style>
+    :root {
+      --primary: #0056b3;
+      --primary-dark: #003d80;
+      --bg-cream: #f9f8f3;
+      --card-bg: #ffffff;
+      --text-main: #2d3748;
+      --text-muted: #718096;
+      --accent-blue: #ebf3ff;
+      --border-color: #e2e8f0;
+      --bottom-nav-h: 68px;
+    }
 
-/* NAV */
-nav{background:var(--cobalt-dark);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 4px;border-bottom:3px solid var(--terra)}
-nav::-webkit-scrollbar{display:none}
-.nav-btn{flex:0 0 auto;background:none;border:none;color:rgba(255,255,255,0.7);padding:10px 13px;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;transition:color 0.2s;border-bottom:3px solid transparent;margin-bottom:-3px}
-.nav-btn.active,.nav-btn:hover{color:#fff;border-bottom-color:var(--terra)}
-.nav-btn i{width:16px;height:16px}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-/* SECTIONS */
-main{flex:1;overflow-y:auto;padding:16px}
-.section{display:none}
-.section.active{display:block}
+    body {
+      background-color: var(--bg-cream);
+      color: var(--text-main);
+      padding-bottom: calc(var(--bottom-nav-h) + 20px);
+    }
 
-/* CARDS */
-.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid rgba(0,71,171,0.12);box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-.card-title{font-size:15px;font-weight:600;color:var(--cobalt);margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.card-title i{width:18px;height:18px;color:var(--terra)}
+    /* HEADER */
+    header {
+      background-color: var(--primary);
+      color: white;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-/* WELCOME */
-.welcome-banner{background:linear-gradient(135deg,var(--cobalt) 0%,var(--cobalt-dark) 100%);border-radius:16px;padding:22px 18px;margin-bottom:16px;color:#fff;text-align:center;position:relative;overflow:hidden}
-.welcome-banner::before{content:"";position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:var(--terra);opacity:0.18;border-radius:50%}
-.welcome-banner h2{font-size:20px;font-weight:600;margin-bottom:6px}
-.welcome-banner p{font-size:13px;opacity:0.85;line-height:1.5}
-.address-badge{display:inline-block;background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;font-size:11px;margin-top:10px;letter-spacing:0.5px;cursor:pointer;transition:background 0.2s}
-.address-badge:hover{background:rgba(255,255,255,0.25)}
+    .header-info h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
 
-/* WIFI & INFO */
-.wifi-code{background:var(--cobalt-light);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-top:8px;cursor:pointer}
-.wifi-code span{font-size:16px;font-weight:700;letter-spacing:1px;color:var(--cobalt)}
-.wifi-copy{background:var(--cobalt);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
-.wifi-copy:hover{background:var(--cobalt-dark)}
+    .header-info p {
+      font-size: 0.82rem;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
 
-.panic-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.panic-btn{border:none;border-radius:12px;padding:14px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600;transition:transform 0.15s}
-.panic-btn:active{transform:scale(0.96)}
-.panic-btn i{width:22px;height:22px}
-.panic-btn.host{background:var(--cobalt-light);color:var(--cobalt)}
-.panic-btn.emergency{background:#FDE8E8;color:#C0392B}
-.panic-btn.wifi{background:#E8F8F0;color:#1a7a45}
-.panic-btn.maps{background:#FFF3E0;color:#E65100}
+    /* BOTTOM NAV */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--bottom-nav-h);
+      background-color: var(--primary-dark);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 -3px 15px rgba(0,0,0,0.15);
+    }
 
-.step{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
-.step-num{width:26px;height:26px;border-radius:50%;background:var(--cobalt);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-text{font-size:14px;line-height:1.5;color:var(--text-muted)}
-.info-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
-.info-row:last-child{border-bottom:none}
-.info-row i{width:16px;height:16px;color:var(--terra);flex-shrink:0}
-.info-label{font-size:12px;color:var(--text-muted);margin-bottom:2px}
-.info-val{font-size:14px;font-weight:500}
+    .nav-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.65);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      width: 20%;
+      height: 100%;
+      transition: all 0.2s;
+    }
 
-/* ACCORDION (FAQ & INVENTORY) */
-.faq-item{background:var(--card);border-radius:12px;margin-bottom:10px;border:1px solid rgba(0,71,171,0.1);overflow:hidden}
-.faq-q{padding:14px 16px;font-size:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center; color:var(--cobalt)}
-.faq-q i{width:16px;height:16px;color:var(--terra);transition:transform 0.2s;flex-shrink:0}
-.faq-a{padding:0 16px;font-size:13px;color:var(--text-muted);line-height:1.6;max-height:0;overflow:hidden;transition:max-height 0.3s,padding 0.3s}
-.faq-item.open .faq-a{max-height:800px;padding-bottom:14px}
-.faq-item.open .faq-q i{transform:rotate(180deg)}
-.inv-list {padding-left: 18px; margin-top: 5px; list-style-type: disc;}
-.inv-list li {margin-bottom: 6px;}
+    .nav-btn i {
+      font-size: 1.15rem;
+      margin-bottom: 4px;
+    }
 
-/* GUIA TABS (Botones Interactivos) */
-.guia-tabs { display:flex; overflow-x:auto; gap:10px; padding-bottom:10px; margin-bottom:15px; scrollbar-width:none; }
-.guia-tabs::-webkit-scrollbar { display:none; }
-.guia-tab { background:var(--card); border:1px solid rgba(0,71,171,0.2); padding:8px 14px; border-radius:20px; font-size:13px; font-weight:600; color:var(--cobalt); cursor:pointer; white-space:nowrap; transition:all 0.2s; display:flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);}
-.guia-tab.active { background:var(--cobalt); color:#fff; border-color:var(--cobalt); }
+    .nav-btn.active {
+      color: #ffffff;
+      font-weight: 700;
+    }
 
-/* POI CARDS */
-.poi-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px;border:1px solid rgba(0,71,171,0.1)}
-.poi-img{width:100%;height:100px;background:var(--cobalt-light);display:flex;align-items:center;justify-content:center;font-size:40px}
-.poi-body{padding:14px}
-.poi-name{font-size:15px;font-weight:600;margin-bottom:4px}
-.poi-desc{font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:10px}
-.maps-btn{background:var(--terra);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
-.maps-btn:hover{background:var(--terra-dark)}
-.maps-btn i{width:15px;height:15px}
+    /* SECCIONES Y CONTENEDOR */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px;
+    }
 
-/* EMERGENCY */
-.emergency-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid #FCA5A5;display:flex;align-items:center;gap:12px}
-.emergency-card.ok{border-color:rgba(0,71,171,0.15)}
-.emerg-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.emerg-icon.blue{background:var(--cobalt-light);color:var(--cobalt)}
-.emerg-icon i{width:20px;height:20px}
-.emerg-info{flex:1}
-.emerg-name{font-size:14px;font-weight:600;margin-bottom:2px}
-.emerg-num{font-size:13px;color:var(--text-muted)}
-.call-btn{background:var(--cobalt);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;}
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
 
-.sec-heading{font-size:14px;font-weight:600;color:var(--cobalt);letter-spacing:1px;text-transform:uppercase;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
-.sec-heading::after{content:"";flex:1;height:1px;background:rgba(0,71,171,0.15)}
+    .tab-content.active {
+      display: block;
+    }
 
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cobalt);color:#fff;padding:8px 20px;border-radius:30px;font-size:13px;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none}
-.toast.show{opacity:1}
-</style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TARJETAS */
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title i {
+      font-size: 1.1rem;
+    }
+
+    /* WIFI ITEMS */
+    .wifi-block {
+      background: var(--accent-blue);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .wifi-info {
+      font-size: 0.88rem;
+    }
+
+    .wifi-info strong {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-top: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    .copy-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* LISTAS CON ICONOS */
+    .item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .item-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .item-icon {
+      font-size: 1.25rem;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .item-text h4 {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .item-text p {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* ACORDEONES (INVENTARIO & FAQ) */
+    .accordion-item {
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .accordion-item:last-child {
+      border-bottom: none;
+    }
+
+    .accordion-header {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 12px 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .accordion-content {
+      display: none;
+      padding-bottom: 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .accordion-item.open .accordion-content {
+      display: block;
+    }
+
+    .accordion-item.open .accordion-header i {
+      transform: rotate(180deg);
+    }
+
+    /* GUIA LOCAL: BOTON MAPS */
+    .maps-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* CONTACTOS DIRECTOS */
+    .contact-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--accent-blue);
+      margin-bottom: 10px;
+    }
+
+    .contact-btn {
+      background-color: #25d366;
+      color: white;
+      text-decoration: none;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* LOADER */
+    #loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 70vh;
+      color: var(--primary);
+      font-weight: 600;
+      gap: 12px;
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    La Casa de mi Abuelo
-    <span id="address-sub">Benito Juárez 61</span>
-  </div>
-  <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
-</header>
-
-<nav>
-  <button class="nav-btn active" onclick="showSection('bienvenida',this)">
-    <i data-lucide="home"></i><span data-i="nav_welcome">Inicio</span>
-  </button>
-  <button class="nav-btn" onclick="showSection('manual',this)">
-    <i data-lucide="book-open"></i><span data-i="nav_manual">Manual</span>
-  </button>
-  <button class="nav-btn" onclick="showSection('guia',this)">
-    <i data-lucide="map-pin"></i><span data-i="nav_guide">Guía Local</span>
-  </button>
-  <button class="nav-btn" onclick="showSection('emergencias',this)">
-    <i data-lucide="phone-call"></i><span data-i="nav_emergency">Ayuda</span>
-  </button>
-  <button class="nav-btn" onclick="showSection('faq',this)">
-    <i data-lucide="help-circle"></i><span data-i="nav_faq">FAQ</span>
-  </button>
-</nav>
-
-<main>
-
-<div class="section active" id="bienvenida">
-  <div class="welcome-banner">
-    <h2 data-i="welcome_title">¡Bienvenido a La Casa de mi Abuelo!</h2>
-    <p data-i="welcome_sub">Nelly y Marcelo están felices de recibirte. Todo lo que necesitas para tu estancia en Coyoacán está aquí.</p>
-    <div class="address-badge" onclick="openMaps('Benito Juarez 61, del Carmen, Coyoacan, 04100')">📍 Benito Juárez 61, Coyoacán</div>
-  </div>
-
-  <div class="sec-heading" data-i="quick_access" style="margin-top:0;">Acceso rápido</div>
-  <div class="panic-grid">
-    <button class="panic-btn host" onclick="showSection('manual',document.querySelectorAll('.nav-btn')[1])">
-      <i data-lucide="wifi"></i>
-      <span data-i="btn_wifi">Wi-Fi</span>
-    </button>
-    <button class="panic-btn maps" onclick="openMaps('Benito Juarez 61, del Carmen, Coyoacan, 04100')">
-      <i data-lucide="navigation"></i>
-      <span data-i="btn_how">Volver a Casa</span>
-    </button>
-    <button class="panic-btn emergency" onclick="showSection('emergencias',document.querySelectorAll('.nav-btn')[3])">
-      <i data-lucide="alert-triangle"></i>
-      <span data-i="btn_emergency">Emergencias</span>
-    </button>
-    <button class="panic-btn green" onclick="showSection('guia',document.querySelectorAll('.nav-btn')[2])">
-      <i data-lucide="map"></i>
-      <span data-i="btn_explore">Explorar</span>
-    </button>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><i data-lucide="wifi"></i><span data-i="wifi_title">Wi-Fi Principal</span></div>
-    <div class="info-row">
-      <i data-lucide="signal"></i>
-      <div><div class="info-label">Red Principal / Main Network</div><div class="info-val">IZZI-ACAE</div></div>
+  <!-- HEADER -->
+  <header>
+    <div class="header-info">
+      <h1 id="headerTitle">Cargando...</h1>
+      <p id="headerSub">Coyoacán, CDMX</p>
     </div>
-    <div class="wifi-code" onclick="copyWifi('D4AB820FACAE')">
-      <span>D4AB820FACAE</span>
-      <button class="wifi-copy" data-i="copy_btn">Copiar</button>
-    </div>
-  </div>
-</div>
+  </header>
 
-<div class="section" id="manual">
-  
-  <div class="card">
-    <div class="card-title"><i data-lucide="calendar"></i><span data-i="check_title">Check-in / Check-out</span></div>
-    <div class="info-row"><i data-lucide="log-in"></i><div><div class="info-label">Check-in</div><div class="info-val">14:00 hrs (2:00 PM)</div></div></div>
-    <div class="info-row"><i data-lucide="log-out"></i><div><div class="info-label">Check-out</div><div class="info-val">12:00 PM (Mediodía)</div></div></div>
+  <!-- LOADER -->
+  <div id="loader">
+    <i class="fas fa-spinner fa-spin fa-2x"></i>
+    <p>Cargando información...</p>
   </div>
 
-  <div class="card">
-    <div class="card-title"><i data-lucide="wifi"></i><span data-i="wifi_title">Conexión Wi-Fi</span></div>
-    <div class="info-row"><i data-lucide="radio"></i><div><div class="info-label">Red Principal (IZZI)</div><div class="info-val">IZZI-ACAE</div></div></div>
-    <div class="wifi-code" onclick="copyWifi('D4AB820FACAE')"><span>D4AB820FACAE</span><button class="wifi-copy" data-i="copy_btn">Copiar</button></div>
-    <div style="height:14px"></div>
-    <div class="info-row"><i data-lucide="radio"></i><div><div class="info-label">Red Secundaria (Infinitum)</div><div class="info-val">INFINITUM3565_2.4</div></div></div>
-    <div class="wifi-code" onclick="copyWifi('meySt7Mb9g')"><span>meySt7Mb9g</span><button class="wifi-copy" data-i="copy_btn">Copiar</button></div>
-  </div>
+  <!-- MAIN CONTAINER -->
+  <div class="container" id="appContent" style="display: none;">
 
-  <div class="card">
-    <div class="card-title"><i data-lucide="scroll-text"></i><span data-i="rules_title">Reglas de la Casa</span></div>
-    <div class="step"><div class="step-num">🚭</div><div class="step-text" data-i="rule_smoke">NO FUMAR dentro del departamento.</div></div>
-    <div class="step"><div class="step-num">🐾</div><div class="step-text" data-i="rule_pets">No se permiten mascotas sin autorización previa.</div></div>
-    <div class="step"><div class="step-num">🤫</div><div class="step-text" data-i="rule_noise">Respetar al vecindario, mantener volumen bajo por la noche.</div></div>
-    <div class="step"><div class="step-num">🚫</div><div class="step-text" data-i="rule_party">No hacer fiestas ni eventos sin consentimiento.</div></div>
-    <div class="step"><div class="step-num">🏠</div><div class="step-text" data-i="rule_clean">Dejar el lugar en las mismas condiciones en que se encontró.</div></div>
-  </div>
+    <!-- 1. PESTAÑA: INICIO -->
+    <div id="tab-inicio" class="tab-content active">
+      <div class="card" id="cardBienvenida">
+        <div class="card-title"><i class="fas fa-heart"></i> ¡Bienvenidos!</div>
+        <p id="txtBienvenida" style="font-size: 0.88rem; line-height: 1.45; color: var(--text-main);"></p>
+      </div>
 
-  <div class="card">
-    <div class="card-title"><i data-lucide="trash-2"></i><span data-i="trash_title">Basura y Limpieza</span></div>
-    <div class="info-row"><i data-lucide="recycle"></i><div><div class="info-label" data-i="trash_label">Recolección</div><div class="info-val">Miércoles a Domingo · 8:00 AM</div></div></div>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:4px" data-i="trash_note">Saca los botes a la entrada si requieres recolección.</p>
-    <div style="height:10px; border-bottom:1px solid var(--border); margin-bottom:10px"></div>
-    <div class="info-row"><i data-lucide="sparkles"></i><div><div class="info-label" data-i="clean_label">Limpieza Adicional</div><div class="info-val" data-i="clean_cost">$600 MXN (Sujeto a disponibilidad)</div></div></div>
-  </div>
-
-  <div class="sec-heading" data-i="inv_title">Inventario del Departamento</div>
-  
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)"><span data-i="inv_elec">Electrónicos y Electrodomésticos</span><i data-lucide="chevron-down"></i></div>
-    <div class="faq-a">
-      <ul class="inv-list">
-        <li>Refrigerador + charola Coca Cola</li>
-        <li>Estufa con campana</li>
-        <li>Microondas y Cafetera</li>
-        <li>Tostadora y Waflera</li>
-        <li>Lámpara de buró</li>
-      </ul>
-    </div>
-  </div>
-  
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)"><span data-i="inv_muebles">Muebles y Blancos</span><i data-lucide="chevron-down"></i></div>
-    <div class="faq-a">
-      <ul class="inv-list">
-        <li>Cama matrimonial y Cama individual</li>
-        <li>Sofá, 3 Sillas altas y 3 Bancos</li>
-        <li>2 Mesitas de noche y 2 Baúles de madera</li>
-        <li>Armario/Clóset (8 ganchos, 6 cajones, 1 cobertor)</li>
-        <li>2 Juegos de sábanas colocadas</li>
-        <li>3 Toallas grandes, 2 de manos y 4 faciales</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)"><span data-i="inv_cocina">Utensilios de Cocina</span><i data-lucide="chevron-down"></i></div>
-    <div class="faq-a">
-      <ul class="inv-list">
-        <li>Vajilla completa para 3 personas + 6 platitos + 4 manteles</li>
-        <li>Cubiertos para 4 personas + Tenedor de servicio</li>
-        <li>4 Vasos cristal + 3 de Coca Cola, 2 Tarros, 2 Copas</li>
-        <li>Azucarera, cremera, 4 tequileros, refractario cristal</li>
-        <li>1 Sartén chica, 1 Sartén grande, 1 Olla con tapa, 1 Posillo</li>
-        <li>Espátulas, destapadores, topers de metal/plástico, cuchillos, coladores</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)"><span data-i="inv_limpieza">Limpieza e Higiene</span><i data-lucide="chevron-down"></i></div>
-    <div class="faq-a">
-      <ul class="inv-list">
-        <li>Escoba, recogedor, trapeador y balde</li>
-        <li>3 Botes de basura, detergente, ambientador eléctrico</li>
-        <li>Champú, jabón corporal, esponja, pasta dental, enjuague</li>
-        <li>Canasta con fruta/dulces de cortesía, escurridor de trastes</li>
-        <li>Jabón trastes, esponja, trapito cocina</li>
-      </ul>
-    </div>
-  </div>
-
-</div>
-
-<div class="section" id="guia">
-  <div class="welcome-banner" style="background:var(--terra);padding:16px 18px;margin-bottom:16px">
-    <p style="font-size:13px;opacity:0.9" data-i="guide_intro">Una selección curada por Nelly y Marcelo para vivir el barrio al máximo.</p>
-  </div>
-  
-  <div class="guia-tabs" id="guia-tabs"></div>
-  <div id="guia-content"></div>
-</div>
-
-<div class="section" id="emergencias">
-  <div class="card" style="background:#FDE8E8;border-color:#FCA5A5">
-    <div class="card-title" style="color:#C0392B"><i data-lucide="alert-triangle"></i><span data-i="emerg_main">911 - Emergencia General</span></div>
-    <p style="font-size:12px;color:#7a3a2e;" data-i="emerg_911">Policía · Bomberos · Ambulancia</p>
-  </div>
-
-  <div class="sec-heading" data-i="emerg_host">Anfitriones</div>
-  
-  <div class="emergency-card ok">
-    <div class="emerg-icon blue"><i data-lucide="user"></i></div>
-    <div class="emerg-info"><div class="emerg-name">Nelly</div><div class="emerg-num">55 6116 1944</div></div>
-    <button class="call-btn" onclick="callNumber('5561161944')" data-i="btn_call">Llamar</button>
-  </div>
-  
-  <div class="emergency-card ok">
-    <div class="emerg-icon blue"><i data-lucide="user"></i></div>
-    <div class="emerg-info"><div class="emerg-name">Marcelo</div><div class="emerg-num">55 3565 3818</div></div>
-    <button class="call-btn" onclick="callNumber('5535653818')" data-i="btn_call">Llamar</button>
-  </div>
-  
-</div>
-
-<div class="section" id="faq"><div id="faq-list"></div></div>
-
-</main>
-
-<div class="toast" id="toast">✓ Copiado</div>
-
-<script>
-// BASE DE DATOS GUIA LOCAL
-const guiaData = {
-  museos: { icon: "🏛️", title: "Museos", items: [
-    {n:"Museo Frida Kahlo", d:"La famosa 'Casa Azul'. Se requiere comprar boleto en línea con días de anticipación.", q:"Museo Frida Kahlo Coyoacan", i:"🎨"},
-    {n:"Museo León Trotsky", d:"A pasos de la casa. Un sitio histórico fascinante sobre el asilo político en México.", q:"Museo Leon Trotsky Coyoacan", i:"📜"},
-    {n:"Casa del Indio Fernández", d:"Arquitectura de piedra volcánica impresionante. Una joya oculta del cine de oro.", q:"Casa de Emilio El Indio Fernandez", i:"🎬"},
-    {n:"Culturas Populares", d:"Exposiciones siempre coloridas sobre el arte folclórico y tradiciones de México.", q:"Museo Nacional de Culturas Populares", i:"🏺"}
-  ]},
-  iglesias: { icon: "⛪", title: "Iglesias Históricas", items: [
-    {n:"Parroquia San Juan Bautista", d:"Templo icónico del siglo XVI en el corazón del centro de Coyoacán.", q:"Parroquia San Juan Bautista Coyoacan", i:"⛪"},
-    {n:"Iglesia de la Conchita", d:"Frente a una de las plazas más románticas y tranquilas del barrio.", q:"Iglesia Inmaculada Concepcion Coyoacan", i:"⛪"},
-    {n:"Capilla de Santa Catarina", d:"Pequeña, pintoresca y rodeada de callejones coloniales hermosos.", q:"Capilla de Santa Catarina Coyoacan", i:"⛪"}
-  ]},
-  restaurantes: { icon: "🍽️", title: "Restaurantes", items: [
-    {n:"Tía Berta", d:"Desayuno: Chilaquiles legendarios de tradición familiar. Imperdible ir temprano.", q:"Restaurante Tia Berta", i:"🍳"},
-    {n:"Mercado de Coyoacán", d:"Económico: Desayuna o come delicioso y a muy buen precio. Hay increíbles antojitos, carnitas, barbacoa y tostadas.", q:"Mercado de Coyoacán", i:"🍲"},
-    {n:"Los Danzantes", d:"Comida: Alta cocina mexicana frente al Jardín Centenario. Ideal para la tarde.", q:"Los Danzantes Coyoacan", i:"🌮"},
-    {n:"Corazón de Maguey", d:"Cena: Excelente mezcalería y gastronomía nocturna con gran ambiente.", q:"Corazon de Maguey Coyoacan", i:"🍸"}
-  ]},
-  amenidades: { icon: "🌳", title: "Amenidades y Paseos", items: [
-    {n:"Mercado de Coyoacán", d:"Artesanías, colores y el verdadero ambiente de barrio. Perfecto para souvenirs.", q:"Mercado de Coyoacán", i:"🛍️"},
-    {n:"Plaza Hidalgo", d:"El corazón social de Coyoacán, rodeado de música, churros y vida local.", q:"Plaza Hidalgo Coyoacan", i:"⛲"}
-  ]},
-  estadios: { icon: "🏟️", title: "Estadios y Conciertos", items: [
-    {n:"Estadio Azteca", d:"El coloso de Santa Úrsula. A 15-20 min en auto.", q:"Estadio Azteca Mexico", i:"⚽"},
-    {n:"Estadio Olímpico CU", d:"Cerca de Ciudad Universitaria, patrimonio arquitectónico.", q:"Estadio Olimpico Universitario", i:"🏈"},
-    {n:"Estadio Ciudad de los Deportes", d:"Anteriormente Estadio Azul. Ubicado en la Col. Nochebuena.", q:"Estadio Ciudad de los Deportes", i:"🏟️"},
-    {n:"Autódromo Hermanos Rodríguez", d:"Sede de la F1, Foro Sol y los festivales de música más grandes.", q:"Autodromo Hermanos Rodriguez", i:"🏎️"},
-    {n:"Palacio de los Deportes", d:"Recinto icónico techado para conciertos y eventos masivos.", q:"Palacio de los Deportes CDMX", i:"🎤"}
-  ]},
-  malls: { icon: "🛍️", title: "Plazas Comerciales", items: [
-    {n:"Centro Coyoacán / Mítikah", d:"Mítikah es el mall más nuevo y espectacular de la zona, a minutos de casa.", q:"Mitikah Centro Comercial", i:"🏢"},
-    {n:"Oasis Coyoacán", d:"Hermosa plaza al aire libre con un gran lago artificial.", q:"Oasis Coyoacan", i:"🛍️"},
-    {n:"Plaza Universidad", d:"Un centro comercial clásico y muy completo con cines y restaurantes.", q:"Plaza Universidad", i:"🏬"}
-  ]},
-  hospitales: { icon: "🏥", title: "Hospitales", items: [
-    {n:"Hospital HMG Coyoacán", d:"Hospital privado con urgencias 24 hrs, muy cerca de la propiedad.", q:"Hospital HMG Coyoacan", i:"🏥"},
-    {n:"Hospital General Xoco", d:"Hospital público de emergencias.", q:"Hospital General Xoco", i:"🏥"}
-  ]},
-  farmacias: { icon: "💊", title: "Farmacias", items: [
-    {n:"Farmacia San Pablo", d:"Servicio 24 horas y entregas a domicilio.", q:"Farmacia San Pablo Coyoacan", i:"⚕️"},
-    {n:"Farmacias del Ahorro", d:"Servicio 24 horas y consultorio médico.", q:"Farmacia del Ahorro Coyoacan", i:"💊"},
-    {n:"Farmacias Similares", d:"Opciones accesibles y medicamentos genéricos.", q:"Farmacias Similares Coyoacan", i:"🩺"},
-    {n:"Farmacia Guadalajara", d:"Farmacia combinada con tienda de conveniencia.", q:"Farmacia Guadalajara Coyoacan", i:"🏪"}
-  ]},
-  tiendas: { icon: "🛒", title: "Tiendas y Supermercados", items: [
-    {n:"Sumesa Centenario", d:"El supermercado más cercano y completo para armar tu despensa.", q:"Sumesa Centenario", i:"🛒"},
-    {n:"Oxxo", d:"Tienda de conveniencia rápida y cercana.", q:"Oxxo Coyoacan", i:"🏪"},
-    {n:"7-Eleven", d:"Snacks, bebidas y básicos abierto 24 hrs.", q:"7-Eleven Coyoacan", i:"🏪"}
-  ]},
-  gasolineras: { icon: "⛽", title: "Gasolineras", items: [
-    {n:"BP Av. México", d:"Estación de servicio muy cercana a la propiedad.", q:"Gasolinera BP Av Mexico Coyoacan", i:"⛽"},
-    {n:"Pemex M. Ángel de Quevedo", d:"Gasolinera tradicional sobre la avenida principal.", q:"Gasolinera Pemex Miguel Angel de Quevedo", i:"⛽"}
-  ]},
-  transporte: { icon: "🚇", title: "Transporte y Movilidad", items: [
-    {n:"Estaciones de Metro", d:"Metro Viveros y Metro Coyoacán son las estaciones de la Línea 3 más cercanas.", q:"Metro Viveros CDMX", i:"🚇"},
-    {n:"EcoBici CDMX", d:"Sistema de bicicletas públicas. Recomendamos revisar la App oficial para estaciones.", q:"https://ecobici.cdmx.gob.mx/", i:"🚲"},
-    {n:"Turibus CDMX", d:"El autobús turístico tiene paradas en el centro de Coyoacán para recorrer la ciudad.", q:"https://www.turibus.com.mx/cdmx", i:"🚌"}
-  ]}
-};
-
-const catNames = {
-  es: {cat_museos:"Museos", cat_iglesias:"Iglesias Históricas", cat_restaurantes:"Restaurantes", cat_amenidades:"Amenidades y Paseos", cat_estadios:"Estadios y Conciertos", cat_malls:"Plazas Comerciales", cat_hospitales:"Hospitales", cat_farmacias:"Farmacias", cat_tiendas:"Tiendas y Supermercados", cat_gasolineras:"Gasolineras", cat_transporte:"Transporte y Movilidad"},
-  en: {cat_museos:"Museums", cat_iglesias:"Historic Churches", cat_restaurantes:"Restaurants", cat_amenidades:"Parks & Amenities", cat_estadios:"Stadiums & Concerts", cat_malls:"Shopping Malls", cat_hospitales:"Hospitals", cat_farmacias:"Pharmacies", cat_tiendas:"Stores & Supermarkets", cat_gasolineras:"Gas Stations", cat_transporte:"Transport & Mobility"}
-};
-
-// TRADUCCIONES ESTRATÉGICAS
-const T = {
-  es:{
-    nav_welcome:"Inicio", nav_manual:"Manual", nav_guide:"Guía Local", nav_emergency:"Ayuda", nav_faq:"FAQ",
-    welcome_title:"¡Bienvenido a La Casa de mi Abuelo!",
-    welcome_sub:"Nelly y Marcelo están felices de recibirte. Todo lo que necesitas para tu estancia en Coyoacán está aquí.",
-    quick_access:"Acceso rápido", btn_wifi:"Wi-Fi", btn_how:"Volver a Casa", btn_emergency:"Emergencias", btn_explore:"Explorar",
-    wifi_title:"Conexión Wi-Fi", copy_btn:"Copiar", check_title:"Check-in / Check-out",
-    rules_title:"Reglas de la Casa",
-    rule_smoke:"NO FUMAR dentro del departamento.",
-    rule_pets:"No se permiten mascotas sin autorización previa.",
-    rule_noise:"Respetar al vecindario, mantener volumen bajo por la noche.",
-    rule_party:"No hacer fiestas ni eventos sin consentimiento.",
-    rule_clean:"Dejar el lugar en las mismas condiciones en que se encontró.",
-    trash_title:"Basura y Limpieza", trash_label:"Recolección", trash_days:"Miércoles a Domingo · 8:00 AM", trash_note:"Saca los botes a la entrada si requieres recolección.",
-    clean_label:"Limpieza Adicional", clean_cost:"$600 MXN (Sujeto a disponibilidad)",
-    inv_title:"Inventario del Departamento", inv_elec:"Electrónicos y Electrodomésticos", inv_muebles:"Muebles y Blancos", inv_cocina:"Utensilios de Cocina", inv_limpieza:"Limpieza e Higiene",
-    guide_intro:"Una selección curada por Nelly y Marcelo para vivir el barrio al máximo.",
-    how_to_get:"Cómo llegar / Abrir", emerg_main:"911 - Emergencia General", emerg_911:"Policía · Bomberos · Ambulancia", emerg_host:"Anfitriones", btn_call:"Llamar",
-    faq:[
-      {q:"¿Cómo es el ingreso y salida del departamento?", a:"Para el ingreso debes oprimir #3333# en el panel numérico. Y para la salida solo hay que presionar el botón rojo."},
-      {q:"¿Puedo utilizar el Roof Garden?", a:"¡Sí! El departamento cuenta con acceso al Roof Garden. Solo avísale a Nelly previamente para que se coloque el mobiliario de exterior correspondiente."},
-      {q:"¿Hay estacionamiento disponible?", a:"No contamos con estacionamiento privado, pero la calle es muy tranquila y segura, con muy poco tránsito. Tu auto se puede quedar estacionado frente al departamento.<br><br>También hay una pensión a 3 minutos en auto y 10 minutos caminando.<br>Esta es la dirección:<br><strong>Estacionamiento Corsa</strong><br>Pino 5, Santa Catarina, Coyoacán, 04010 Ciudad de México, CDMX"},
-      {q:"¿El departamento tiene lo necesario para cocinar?", a:"Totalmente. Como puedes ver en la sección de Inventario, la cocina está equipada con refrigerador, estufa, microondas, vajilla, sartenes y cubiertos para 4 personas."}
-    ]
-  },
-  en:{
-    nav_welcome:"Home", nav_manual:"Manual", nav_guide:"Local Guide", nav_emergency:"Help", nav_faq:"FAQ",
-    welcome_title:"Welcome to La Casa de mi Abuelo!",
-    welcome_sub:"Nelly and Marcelo are happy to host you. Everything you need is right here.",
-    quick_access:"Quick Access", btn_wifi:"Wi-Fi", btn_how:"Back to House", btn_emergency:"Emergency", btn_explore:"Explore",
-    wifi_title:"Wi-Fi Connection", copy_btn:"Copy", check_title:"Check-in / Check-out",
-    rules_title:"House Rules",
-    rule_smoke:"NO SMOKING inside the apartment.",
-    rule_pets:"No pets allowed without prior authorization.",
-    rule_noise:"Respect the neighborhood, keep volume low at night.",
-    rule_party:"No parties or events allowed.",
-    rule_clean:"Leave the place in the same condition as found.",
-    trash_title:"Trash & Cleaning", trash_label:"Collection", trash_days:"Wed to Sun · 8:00 AM", trash_note:"Put bins at the entrance if collection is needed.",
-    clean_label:"Extra Cleaning", clean_cost:"$600 MXN (Subject to availability)",
-    inv_title:"Apartment Inventory", inv_elec:"Electronics & Appliances", inv_muebles:"Furniture & Linens", inv_cocina:"Kitchenware", inv_limpieza:"Cleaning & Hygiene",
-    guide_intro:"A curated selection by Nelly and Marcelo to experience the neighborhood.",
-    how_to_get:"Get Directions", emerg_main:"911 - General Emergency", emerg_911:"Police · Fire · Ambulance", emerg_host:"Hosts", btn_call:"Call",
-    faq:[
-      {q:"How does check-in and check-out work?", a:"For entry, you must press #3333# on the keypad. For departure, you only need to press the red button."},
-      {q:"Can I use the Roof Garden?", a:"Yes! You have access to the Roof Garden. Just let Nelly know in advance so the outdoor furniture can be set up."},
-      {q:"Is parking available?", a:"We do not have private parking, but the street is very quiet and safe, with very little traffic. Your car can remain parked in front of the apartment.<br><br>There is also a paid parking lot 3 minutes away by car and 10 minutes walking.<br>Here is the address:<br><strong>Estacionamiento Corsa</strong><br>Pino 5, Santa Catarina, Coyoacán, 04010 Ciudad de México, CDMX"},
-      {q:"Is the kitchen equipped for cooking?", a:"Absolutely. As you can see in the Inventory section, it is fully equipped with a fridge, stove, microwave, dishes, pans, and cutlery for 4 people."}
-    ]
-  }
-};
-
-let lang = 'es';
-let currentGuiaCat = 'museos';
-
-function buildGuiaTabs(){
-  const container = document.getElementById('guia-tabs');
-  let html = '';
-  for(const key in guiaData){
-    const cat = guiaData[key];
-    const activeCls = key === currentGuiaCat ? 'active' : '';
-    const title = catNames[lang]['cat_'+key] || cat.title;
-    html += `<button class="guia-tab ${activeCls}" onclick="showGuiaCategory('${key}')">${cat.icon} <span>${title}</span></button>`;
-  }
-  container.innerHTML = html;
-}
-
-function showGuiaCategory(key){
-  currentGuiaCat = key;
-  buildGuiaTabs();
-  const container = document.getElementById('guia-content');
-  const cat = guiaData[key];
-  const title = catNames[lang]['cat_'+key] || cat.title;
-  let html = `<div class="sec-heading">${cat.icon} <span>${title}</span></div>`;
-  cat.items.forEach(l => {
-    let action = l.q.startsWith('http') ? `window.open('${l.q}', '_blank')` : `openMaps('${l.q}')`;
-    html += `
-      <div class="poi-card">
-        <div class="poi-img">${l.i}</div>
-        <div class="poi-body">
-          <div class="poi-name">${l.n}</div>
-          <div class="poi-desc">${l.d}</div>
-          <button class="maps-btn" onclick="${action}"><i data-lucide="navigation"></i><span data-i="how_to_get">${lang==='es'?'Cómo llegar / Abrir':'Get Directions'}</span></button>
+      <div class="card" id="cardAcceso">
+        <div class="card-title"><i class="fas fa-door-open"></i> Acceso Principal</div>
+        <div class="item-row">
+          <div class="item-icon">🔢</div>
+          <div class="item-text">
+            <h4>Código de Puerta</h4>
+            <p><strong id="txtCodigoPuerta" style="font-size: 1.1rem; color: var(--primary);"></strong></p>
+          </div>
         </div>
-      </div>`;
-  });
-  container.innerHTML = html;
-  if(typeof lucide!=='undefined') lucide.createIcons();
-}
+        <div class="item-row" id="rowCheckin">
+          <div class="item-icon">🔑</div>
+          <div class="item-text">
+            <h4>Instrucciones</h4>
+            <p id="txtCheckin"></p>
+          </div>
+        </div>
+      </div>
 
-function applyLang(){
-  const d = T[lang];
-  document.querySelectorAll('[data-i]').forEach(el=>{
-    const k = el.getAttribute('data-i');
-    if(d[k]) el.textContent = d[k];
-  });
-  
-  document.getElementById('langBtn').textContent = lang==='es'?'EN':'ES';
-  buildFAQ();
-  showGuiaCategory(currentGuiaCat); 
-  if(typeof lucide!=='undefined') lucide.createIcons();
-}
+      <div class="card" id="cardWifi">
+        <div class="card-title"><i class="fas fa-wifi"></i> Conexión Wi-Fi</div>
+        <div id="wifiList"></div>
+      </div>
+    </div>
 
-function toggleLang(){
-  lang = lang==='es'?'en':'es';
-  applyLang();
-}
+    <!-- 2. PESTAÑA: MANUAL -->
+    <div id="tab-manual" class="tab-content">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-book-open"></i> Reglas de la Casa</div>
+        <div id="reglasList"></div>
+      </div>
 
-function showSection(id, btn){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if(btn) btn.classList.add('active');
-}
+      <div class="card">
+        <div class="card-title"><i class="fas fa-trash-alt"></i> Basura y Limpieza</div>
+        <div id="basuraList"></div>
+      </div>
 
-function copyWifi(pw){
-  navigator.clipboard.writeText(pw).catch(()=>{});
-  const t=document.getElementById('toast');
-  t.textContent = lang==='es'?'✓ Copiado':'✓ Copied';
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2000);
-}
+      <div class="card">
+        <div class="card-title"><i class="fas fa-boxes"></i> Inventario del Departamento</div>
+        <div id="inventarioList"></div>
+      </div>
+    </div>
 
-function openMaps(q){
-  window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q), '_blank');
-}
+    <!-- 3. PESTAÑA: GUÍA LOCAL -->
+    <div id="tab-guia" class="tab-content">
+      <div id="guiaList"></div>
+    </div>
 
-function callNumber(n){ window.open('tel:+52'+n,'_self'); }
+    <!-- 4. PESTAÑA: AYUDA / CONTACTO -->
+    <div id="tab-ayuda" class="tab-content">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-phone-alt"></i> Contactos de Emergencia y Soporte</div>
+        <div id="contactosList"></div>
+      </div>
+    </div>
 
-function buildFAQ(){
-  const d=T[lang];
-  const list=document.getElementById('faq-list');
-  list.innerHTML='';
-  d.faq.forEach((item)=>{
-    const el=document.createElement('div');
-    el.className='faq-item';
-    el.innerHTML=`<div class="faq-q" onclick="toggleFaq(this)">${item.q}<i data-lucide="chevron-down"></i></div><div class="faq-a">${item.a}</div>`;
-    list.appendChild(el);
-  });
-}
+    <!-- 5. PESTAÑA: FAQ -->
+    <div id="tab-faq" class="tab-content">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-question-circle"></i> Preguntas Frecuentes</div>
+        <div id="faqList"></div>
+      </div>
+    </div>
 
-function toggleFaq(el){
-  el.parentElement.classList.toggle('open');
-}
+  </div>
 
-window.addEventListener('load',()=>{
-  applyLang(); 
-});
-</script>
+  <!-- NAVEGACIÓN INFERIOR -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('inicio')">
+      <i class="fas fa-home"></i>
+      <span>Inicio</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('manual')">
+      <i class="fas fa-book"></i>
+      <span>Manual</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('guia')">
+      <i class="fas fa-map-marker-alt"></i>
+      <span>Guía Local</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('ayuda')">
+      <i class="fas fa-phone-alt"></i>
+      <span>Ayuda</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('faq')">
+      <i class="fas fa-question"></i>
+      <span>FAQ</span>
+    </button>
+  </nav>
+
+  <script>
+    // URL DE TU APPS SCRIPT
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrJBdfVGPvgL-8CWj15N-1pBkUlm8dfOcf6WWdFnOpyjdA2sxdRcTH9RS-VIhaaCvZ/exec";
+
+    // Detectar departamento por URL (?depa=rinconcito o ?depa=abuelo)
+    const urlParams = new URLSearchParams(window.location.search);
+    const depaParam = urlParams.get('depa') || 'abuelo';
+
+    // Función para cambiar de pestaña
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabName).classList.add('active');
+      
+      const buttons = document.querySelectorAll('.nav-btn');
+      const tabs = ['inicio', 'manual', 'guia', 'ayuda', 'faq'];
+      const index = tabs.indexOf(tabName);
+      if (index !== -1) buttons[index].classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    // Copiar al portapapeles
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copiado';
+        setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+      });
+    }
+
+    // Cargar datos desde Apps Script
+    async function loadAppData() {
+      try {
+        const res = await fetch(`${SCRIPT_URL}?depa=${depaParam}`);
+        const data = await res.json();
+
+        // 1. CARGAR PROPIEDAD & HEADER
+        document.getElementById('headerTitle').innerText = data.propiedad.nombre || "Mi Alojamiento";
+        document.getElementById('txtBienvenida').innerText = data.propiedad.mensajeBienvenida || "";
+        document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
+        document.getElementById('txtCheckin').innerText = data.propiedad.checkin || "";
+
+        // Wi-Fi
+        let wifiHtml = '';
+        if (data.propiedad.wifiNombre1) {
+          wifiHtml += `
+            <div class="wifi-block">
+              <div class="wifi-info">
+                <span>Red: ${data.propiedad.wifiNombre1}</span>
+                <strong>${data.propiedad.wifiPass1}</strong>
+              </div>
+              <button class="copy-btn" onclick="copyText('${data.propiedad.wifiPass1}', this)">
+                <i class="far fa-copy"></i> Copiar
+              </button>
+            </div>`;
+        }
+        if (data.propiedad.wifiNombre2) {
+          wifiHtml += `
+            <div class="wifi-block">
+              <div class="wifi-info">
+                <span>Red Secundaria: ${data.propiedad.wifiNombre2}</span>
+                <strong>${data.propiedad.wifiPass2}</strong>
+              </div>
+              <button class="copy-btn" onclick="copyText('${data.propiedad.wifiPass2}', this)">
+                <i class="far fa-copy"></i> Copiar
+              </button>
+            </div>`;
+        }
+        document.getElementById('wifiList').innerHTML = wifiHtml;
+
+        // 2. CARGAR MANUAL
+        let reglasHtml = '', basuraHtml = '', invMap = {};
+        data.manual.forEach(item => {
+          if (item.seccion === 'regla') {
+            reglasHtml += `
+              <div class="item-row">
+                <div class="item-icon">${item.icono || '📌'}</div>
+                <div class="item-text">
+                  <h4>${item.titulo}</h4>
+                  <p>${item.detalle}</p>
+                </div>
+              </div>`;
+          } else if (item.seccion === 'basura') {
+            basuraHtml += `
+              <div class="item-row">
+                <div class="item-icon">${item.icono || '🗑️'}</div>
+                <div class="item-text">
+                  <h4>${item.titulo}</h4>
+                  <p>${item.detalle}</p>
+                </div>
+              </div>`;
+          } else if (item.seccion === 'inventario') {
+            if (!invMap[item.categoria]) invMap[item.categoria] = [];
+            invMap[item.categoria].push(item);
+          }
+        });
+
+        document.getElementById('reglasList').innerHTML = reglasHtml;
+        document.getElementById('basuraList').innerHTML = basuraHtml;
+
+        let invHtml = '';
+        for (let cat in invMap) {
+          invHtml += `
+            <div class="accordion-item">
+              <button class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+                <span>${cat}</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="accordion-content">
+                ${invMap[cat].map(i => `<p><strong>${i.icono || '•'} ${i.titulo}:</strong> ${i.detalle}</p>`).join('')}
+              </div>
+            </div>`;
+        }
+        document.getElementById('inventarioList').innerHTML = invHtml;
+
+        // 3. CARGAR GUIA LOCAL
+        let guiaCategorias = {};
+        data.guia.forEach(place => {
+          let cat = place.categoria.toUpperCase();
+          if (!guiaCategorias[cat]) guiaCategorias[cat] = [];
+          guiaCategorias[cat].push(place);
+        });
+
+        let guiaHtml = '';
+        for (let cat in guiaCategorias) {
+          guiaHtml += `<div class="card"><div class="card-title">${cat}</div>`;
+          guiaCategorias[cat].forEach(p => {
+            let mapUrl = p.maps.startsWith('http') ? p.maps : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.maps)}`;
+            guiaHtml += `
+              <div class="item-row">
+                <div class="item-icon">${p.icono || '📍'}</div>
+                <div class="item-text">
+                  <h4>${p.nombre}</h4>
+                  <p>${p.descripcion || ''}</p>
+                  <a href="${mapUrl}" target="_blank" class="maps-btn">
+                    <i class="fas fa-directions"></i> Ver en Google Maps
+                  </a>
+                </div>
+              </div>`;
+          });
+          guiaHtml += `</div>`;
+        }
+        document.getElementById('guiaList').innerHTML = guiaHtml;
+
+        // 4. CARGAR CONTACTOS
+        let contactoHtml = '';
+        data.contactos.forEach(c => {
+          let phoneClean = c.telefono.replace(/\\D/g, '');
+          let actionBtn = phoneClean.length === 3 
+            ? `<a href="tel:${phoneClean}" class="contact-btn" style="background:#d9534f;"><i class="fas fa-phone"></i> Llamar</a>`
+            : `<a href="https://wa.me/52${phoneClean}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>`;
+
+          contactoHtml += `
+            <div class="contact-card">
+              <div>
+                <strong>${c.nombre}</strong>
+                <p style="font-size:0.8rem; color:var(--text-muted);">${c.telefono}</p>
+              </div>
+              ${actionBtn}
+            </div>`;
+        });
+        document.getElementById('contactosList').innerHTML = contactoHtml;
+
+        // 5. CARGAR FAQ
+        let faqHtml = '';
+        data.faq.forEach(f => {
+          faqHtml += `
+            <div class="accordion-item">
+              <button class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+                <span>${f.pregunta}</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="accordion-content">
+                <p>${f.respuesta}</p>
+              </div>
+            </div>`;
+        });
+        document.getElementById('faqList').innerHTML = faqHtml;
+
+        // Mostrar contenido
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('appContent').style.display = 'block';
+
+      } catch (err) {
+        document.getElementById('loader').innerHTML = `<p style="color:red;">Error al cargar datos. Verifica la conexión.</p>`;
+        console.error(err);
+      }
+    }
+
+    loadAppData();
+  </script>
 </body>
 </html>
