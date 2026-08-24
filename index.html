@@ -139,6 +139,28 @@
       gap: 10px;
     }
 
+    .btn-return-home {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      background: linear-gradient(135deg, #0056b3, #003d80);
+      color: white;
+      text-decoration: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 12px rgba(0, 86, 179, 0.25);
+      margin-bottom: 14px;
+      transition: transform 0.15s ease;
+    }
+
+    .btn-return-home:active {
+      transform: scale(0.98);
+    }
+
     .wifi-block {
       background: var(--accent-blue);
       border-radius: 10px;
@@ -308,6 +330,11 @@
 
     <!-- INICIO -->
     <div id="tab-inicio" class="tab-content active">
+      
+      <a id="btnRegresarCasa" href="#" target="_blank" class="btn-return-home">
+        <i class="fas fa-location-arrow"></i> ¿Cómo regresar al departamento?
+      </a>
+
       <div class="card">
         <div class="card-title"><i class="fas fa-heart"></i> ¡Bienvenidos!</div>
         <p id="txtBienvenida" style="font-size: 0.88rem; line-height: 1.45; color: var(--text-main);"></p>
@@ -433,6 +460,10 @@
       document.getElementById('txtBienvenida').innerText = data.propiedad.mensajeBienvenida || "";
       document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
       document.getElementById('txtCheckin').innerText = data.propiedad.checkin || "";
+
+      // Asignar destino al botón de Maps usando el valor de la columna M
+      const direccionDestino = data.propiedad.direccionMaps || "Benito Juárez 61, Del Carmen, Coyoacán, CDMX";
+      document.getElementById('btnRegresarCasa').href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccionDestino)}`;
 
       let wifiHtml = '';
       if (data.propiedad.wifiNombre1) {
