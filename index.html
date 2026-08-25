@@ -29,16 +29,32 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* Ocultar barra superior de Google Translate para mantener el diseño limpio */
     body {
+      top: 0px !important;
+      position: static !important;
       background-color: var(--bg-cream);
       color: var(--text-main);
       padding-bottom: calc(var(--bottom-nav-h) + 20px);
+    }
+    .goog-te-banner-frame {
+      display: none !important;
+    }
+    #goog-gt-tt, .goog-te-balloon-frame {
+      display: none !important;
+    }
+    .goog-text-highlight {
+      background: none !important;
+      box-shadow: none !important;
+    }
+    #google_translate_element {
+      display: none;
     }
 
     header {
       background-color: var(--primary);
       color: white;
-      padding: 16px 20px;
+      padding: 14px 18px;
       position: sticky;
       top: 0;
       z-index: 100;
@@ -49,15 +65,46 @@
     }
 
     .header-info h1 {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.3px;
     }
 
     .header-info p {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       opacity: 0.85;
-      margin-top: 2px;
+      margin-top: 1px;
+    }
+
+    /* Selector de idiomas con banderas */
+    .lang-picker {
+      display: flex;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 4px 6px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .lang-btn {
+      background: none;
+      border: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.8);
+      padding: 4px 7px;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.2s;
+    }
+
+    .lang-btn.active {
+      background: white;
+      color: var(--primary-dark);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
     nav.bottom-nav {
@@ -311,13 +358,35 @@
       padding: 20px;
     }
   </style>
+
+  <!-- Google Translate Element Script -->
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'es',
+        includedLanguages: 'es,en,fr',
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
 <body>
+
+  <!-- Contenedor oculto del traductor -->
+  <div id="google_translate_element"></div>
 
   <header>
     <div class="header-info">
       <h1 id="headerTitle">Cargando...</h1>
       <p id="headerSub">Coyoacán, CDMX</p>
+    </div>
+
+    <!-- Botones de idioma -->
+    <div class="lang-picker notranslate">
+      <button class="lang-btn active" id="btn-es" onclick="changeLanguage('es')">🇲🇽 ES</button>
+      <button class="lang-btn" id="btn-en" onclick="changeLanguage('en')">🇺🇸 EN</button>
+      <button class="lang-btn" id="btn-fr" onclick="changeLanguage('fr')">🇫🇷 FR</button>
     </div>
   </header>
 
@@ -346,7 +415,7 @@
           <div class="item-icon">🔢</div>
           <div class="item-text">
             <h4>Código de Puerta</h4>
-            <p><strong id="txtCodigoPuerta" style="font-size: 1.1rem; color: var(--primary);"></strong></p>
+            <p><strong id="txtCodigoPuerta" class="notranslate" style="font-size: 1.1rem; color: var(--primary);"></strong></p>
           </div>
         </div>
         <div class="item-row">
@@ -360,7 +429,7 @@
 
       <div class="card">
         <div class="card-title"><i class="fas fa-wifi"></i> Conexión Wi-Fi</div>
-        <div id="wifiList"></div>
+        <div id="wifiList" class="notranslate"></div>
       </div>
     </div>
 
@@ -434,6 +503,19 @@
     const urlParams = new URLSearchParams(window.location.search);
     const depaParam = urlParams.get('depa') || 'abuelo';
 
+    // Función para cambiar de idioma
+    function changeLanguage(lang) {
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-' + lang);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const select = document.querySelector('.goog-te-combo');
+      if (select) {
+        select.value = lang;
+        select.dispatchEvent(new Event('change'));
+      }
+    }
+
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -461,10 +543,11 @@
       document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
       document.getElementById('txtCheckin').innerText = data.propiedad.checkin || "";
 
-      // Asignar destino al botón de Maps usando el valor de la columna M
+      // Asignar destino al botón de Maps
       const direccionDestino = data.propiedad.direccionMaps || "Benito Juárez 61, Del Carmen, Coyoacán, CDMX";
       document.getElementById('btnRegresarCasa').href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccionDestino)}`;
 
+      // Wi-Fi
       let wifiHtml = '';
       if (data.propiedad.wifiNombre1) {
         wifiHtml += `
@@ -492,13 +575,14 @@
       }
       document.getElementById('wifiList').innerHTML = wifiHtml;
 
+      // Manual
       let reglasHtml = '', basuraHtml = '', invMap = {};
       if (data.manual) {
         data.manual.forEach(item => {
           if (item.seccion === 'regla') {
             reglasHtml += `
               <div class="item-row">
-                <div class="item-icon">${item.icono || '📌'}</div>
+                <div class="item-icon notranslate">${item.icono || '📌'}</div>
                 <div class="item-text">
                   <h4>${item.titulo}</h4>
                   <p>${item.detalle}</p>
@@ -507,7 +591,7 @@
           } else if (item.seccion === 'basura') {
             basuraHtml += `
               <div class="item-row">
-                <div class="item-icon">${item.icono || '🗑️'}</div>
+                <div class="item-icon notranslate">${item.icono || '🗑️'}</div>
                 <div class="item-text">
                   <h4>${item.titulo}</h4>
                   <p>${item.detalle}</p>
@@ -531,12 +615,13 @@
               <i class="fas fa-chevron-down"></i>
             </button>
             <div class="accordion-content">
-              ${invMap[cat].map(i => `<p style="margin-bottom:6px;"><strong>${i.icono || '•'} ${i.titulo}:</strong> ${i.detalle}</p>`).join('')}
+              ${invMap[cat].map(i => `<p style="margin-bottom:6px;"><strong><span class="notranslate">${i.icono || '•'}</span> ${i.titulo}:</strong> ${i.detalle}</p>`).join('')}
             </div>
           </div>`;
       }
       document.getElementById('inventarioList').innerHTML = invHtml;
 
+      // Guía Local
       let guiaCategorias = {};
       if (data.guia) {
         data.guia.forEach(place => {
@@ -552,7 +637,7 @@
           let mapsUrl = String(p.maps).startsWith('http') ? p.maps : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.maps)}`;
           guiaHtml += `
             <div class="item-row">
-              <div class="item-icon">${p.icono || '📍'}</div>
+              <div class="item-icon notranslate">${p.icono || '📍'}</div>
               <div class="item-text">
                 <h4>${p.nombre}</h4>
                 <p>${p.descripcion || ''}</p>
@@ -566,6 +651,7 @@
       }
       document.getElementById('guiaList').innerHTML = guiaHtml;
 
+      // Contactos
       let contactoHtml = '';
       if (data.contactos) {
         data.contactos.forEach(c => {
@@ -577,8 +663,8 @@
           contactoHtml += `
             <div class="contact-card">
               <div>
-                <strong>${c.nombre}</strong>
-                <p style="font-size:0.8rem; color:var(--text-muted);">${c.telefono}</p>
+                <strong class="notranslate">${c.nombre}</strong>
+                <p class="notranslate" style="font-size:0.8rem; color:var(--text-muted);">${c.telefono}</p>
               </div>
               ${actionBtn}
             </div>`;
@@ -586,6 +672,7 @@
       }
       document.getElementById('contactosList').innerHTML = contactoHtml;
 
+      // FAQ
       let faqHtml = '';
       if (data.faq) {
         data.faq.forEach(f => {
