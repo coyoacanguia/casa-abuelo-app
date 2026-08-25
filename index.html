@@ -21,34 +21,44 @@
       --bottom-nav-h: 68px;
     }
 
+    /* ELIMINACIÓN TOTAL DEL BANNER DE GOOGLE TRANSLATE */
+    .skiptranslate,
+    .goog-te-banner-frame,
+    .goog-te-banner-frame.skiptranslate,
+    iframe.goog-te-banner-frame,
+    #goog-gt-tt,
+    .goog-te-balloon-frame {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      width: 0 !important;
+      opacity: 0 !important;
+    }
+
+    body {
+      top: 0px !important;
+      position: static !important;
+      min-height: 100vh !important;
+      background-color: var(--bg-cream);
+      color: var(--text-main);
+      padding-bottom: calc(var(--bottom-nav-h) + 20px);
+    }
+
+    .goog-text-highlight {
+      background: none !important;
+      box-shadow: none !important;
+    }
+
+    #google_translate_element {
+      display: none !important;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Ocultar barra superior de Google Translate para mantener el diseño limpio */
-    body {
-      top: 0px !important;
-      position: static !important;
-      background-color: var(--bg-cream);
-      color: var(--text-main);
-      padding-bottom: calc(var(--bottom-nav-h) + 20px);
-    }
-    .goog-te-banner-frame {
-      display: none !important;
-    }
-    #goog-gt-tt, .goog-te-balloon-frame {
-      display: none !important;
-    }
-    .goog-text-highlight {
-      background: none !important;
-      box-shadow: none !important;
-    }
-    #google_translate_element {
-      display: none;
     }
 
     header {
@@ -359,7 +369,6 @@
     }
   </style>
 
-  <!-- Google Translate Element Script -->
   <script type="text/javascript">
     function googleTranslateElementInit() {
       new google.translate.TranslateElement({
@@ -373,7 +382,6 @@
 </head>
 <body>
 
-  <!-- Contenedor oculto del traductor -->
   <div id="google_translate_element"></div>
 
   <header>
@@ -382,7 +390,6 @@
       <p id="headerSub">Coyoacán, CDMX</p>
     </div>
 
-    <!-- Botones de idioma -->
     <div class="lang-picker notranslate">
       <button class="lang-btn active" id="btn-es" onclick="changeLanguage('es')">🇲🇽 ES</button>
       <button class="lang-btn" id="btn-en" onclick="changeLanguage('en')">🇺🇸 EN</button>
@@ -503,7 +510,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const depaParam = urlParams.get('depa') || 'abuelo';
 
-    // Función para cambiar de idioma
+    // Función de cambio de idioma limpia sin banner
     function changeLanguage(lang) {
       document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.getElementById('btn-' + lang);
@@ -514,6 +521,13 @@
         select.value = lang;
         select.dispatchEvent(new Event('change'));
       }
+
+      // Eliminar banner si intenta inyectarse
+      setTimeout(() => {
+        const frame = document.querySelector('.goog-te-banner-frame');
+        if (frame) frame.style.display = 'none';
+        document.body.style.top = '0px';
+      }, 50);
     }
 
     function switchTab(tabName) {
@@ -543,7 +557,6 @@
       document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
       document.getElementById('txtCheckin').innerText = data.propiedad.checkin || "";
 
-      // Asignar destino al botón de Maps
       const direccionDestino = data.propiedad.direccionMaps || "Benito Juárez 61, Del Carmen, Coyoacán, CDMX";
       document.getElementById('btnRegresarCasa').href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccionDestino)}`;
 
