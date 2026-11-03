@@ -194,7 +194,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* BANNER DE TEMPORADA */
+    /* BANNER DE TEMPORADA DE CANVA */
     #seasonalBanner {
       display: none;
       width: 100%;
@@ -328,58 +328,71 @@
       line-height: 1.4;
     }
 
-    /* CUADRÍCULA DE BOTONES INTERACTIVOS (3 COLUMNAS) */
-    .category-grid {
+    /* CUADRÍCULA INTERACTIVA DE 3 COLUMNAS */
+    .grid-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
+      gap: 12px;
+      margin-top: 6px;
+      margin-bottom: 14px;
     }
 
-    .category-card-btn {
+    .grid-btn {
       background: #ffffff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 12px 6px;
+      border: 1.5px solid #dce4ec;
+      border-radius: 14px;
+      padding: 16px 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.04);
       transition: all 0.2s ease;
-      min-height: 76px;
+      min-height: 95px;
     }
 
-    .category-card-btn:active {
-      transform: scale(0.96);
+    .grid-btn:active {
+      transform: scale(0.95);
+      border-color: var(--primary);
     }
 
-    .category-card-btn .cat-icon {
-      font-size: 1.45rem;
+    .grid-btn .cat-icon {
+      font-size: 2rem;
       line-height: 1;
     }
 
-    .category-card-btn .cat-label {
-      font-size: 0.76rem;
+    .grid-btn .cat-title {
+      font-size: 0.78rem;
       font-weight: 700;
       color: var(--text-main);
       text-align: center;
-      line-height: 1.15;
+      line-height: 1.2;
     }
 
-    .category-card-btn.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      box-shadow: 0 4px 10px rgba(0, 86, 179, 0.28);
+    /* BOTÓN VOLVER AL MENÚ DE CATEGORÍAS */
+    .btn-back-categories {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--primary);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     }
 
-    .category-card-btn.active .cat-label {
-      color: #ffffff;
+    .btn-back-categories:active {
+      background: var(--accent-blue);
     }
 
-    /* ESTRUCTURA VERTICAL PARA ELEMENTOS DE GUÍA LOCAL */
+    /* TARJETAS DE LUGARES */
     .place-box {
       display: block !important;
       width: 100% !important;
@@ -401,7 +414,7 @@
     }
 
     .place-emoji {
-      font-size: 1.35rem !important;
+      font-size: 1.4rem !important;
       line-height: 1 !important;
       display: inline-block !important;
       flex-shrink: 0 !important;
@@ -573,7 +586,7 @@
     <!-- INICIO -->
     <div id="tab-inicio" class="tab-content active">
       
-      <!-- CONTENEDOR PARA BANNER DE TEMPORADA DE CANVA -->
+      <!-- BANNER DE TEMPORADA DE CANVA -->
       <div id="seasonalBanner">
         <img id="imgSeasonalBanner" src="" alt="Temporada">
       </div>
@@ -629,14 +642,25 @@
       </div>
     </div>
 
-    <!-- GUIA LOCAL (INTERACTIVA EN CUADRÍCULA) -->
+    <!-- GUIA LOCAL (INTERACTIVA EN CUADRÍCULA 3x3) -->
     <div id="tab-guia" class="tab-content">
       
-      <!-- CUADRÍCULA DE 3 COLUMNAS PARA CATEGORÍAS -->
-      <div class="category-grid" id="categoryGrid"></div>
+      <!-- VISTA 1: TABLERO EN CUADRÍCULA DE CATEGORÍAS -->
+      <div id="categoryGridSection">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-compass"></i> ¿Qué deseas explorar hoy?</div>
+          <div class="grid-container" id="categoryGrid"></div>
+        </div>
+      </div>
 
-      <!-- LISTA DE LUGARES DE LA CATEGORÍA ACTIVA -->
-      <div id="guiaList"></div>
+      <!-- VISTA 2: LISTA DE LUGARES DE LA CATEGORÍA ELEGIDA -->
+      <div id="placesListSection" style="display: none;">
+        <button class="btn-back-categories" onclick="showCategoryGrid()">
+          <i class="fas fa-arrow-left"></i> Ver todas las categorías
+        </button>
+        <div id="guiaList"></div>
+      </div>
+
     </div>
 
     <!-- AYUDA -->
@@ -687,9 +711,8 @@
     const depaParam = urlParams.get('depa') || 'abuelo';
 
     let localGuideData = [];
-    let currentCategory = '';
 
-    // Asignación de icono de categoría representativo
+    // Icono representativo para cada botón del tablero
     function getCategoryEmoji(catName, sampleItemIcon) {
       if (sampleItemIcon && sampleItemIcon.trim() !== '📍') {
         return sampleItemIcon.trim();
@@ -702,8 +725,8 @@
       if (c.includes("cafe") || c.includes("café")) return "☕";
       if (c.includes("amenidad")) return "✨";
       if (c.includes("iglesia") || c.includes("parroquia") || c.includes("capilla")) return "⛪";
-      if (c.includes("arqueolog") || c.includes("piramid") || c.includes("zona")) return "🏛️";
-      if (c.includes("mall") || c.includes("plaza") || c.includes("centro comercial") || c.includes("tienda")) return "🛍️";
+      if (c.includes("arqueolog") || c.includes("zona")) return "🏛️";
+      if (c.includes("mall") || c.includes("plaza") || c.includes("centro comercial")) return "🛍️";
       if (c.includes("parque") || c.includes("viveros")) return "🌳";
       if (c.includes("bar") || c.includes("cantina")) return "🍻";
       return "📍";
@@ -764,6 +787,11 @@
       if (index !== -1) buttons[index].classList.add('active');
       window.scrollTo(0, 0);
 
+      // Si entra a la Guía, reinicia a la vista de cuadrícula
+      if (tabName === 'guia') {
+        showCategoryGrid();
+      }
+
       registrarMetrica("Navegación Pestaña", tabName.toUpperCase());
     }
 
@@ -776,7 +804,7 @@
       });
     }
 
-    // Renderizar la cuadrícula de botones interactivos según las categorías de Sheets
+    // RENDERIZAR TABLERO EN CUADRÍCULA DE 3 COLUMNAS
     function renderCategoryGrid(guia) {
       const grid = document.getElementById('categoryGrid');
       const uniqueCats = [];
@@ -791,19 +819,13 @@
         }
       });
 
-      // Seleccionar por defecto la primera categoría existente
-      if (!currentCategory && uniqueCats.length > 0) {
-        currentCategory = uniqueCats[0];
-      }
-
       let gridHtml = '';
       uniqueCats.forEach(catKey => {
-        const isActive = (catKey === currentCategory) ? 'active' : '';
         const icon = catIcons[catKey] || '📍';
         gridHtml += `
-          <button class="category-card-btn ${isActive}" onclick="selectCategory('${catKey}', this)">
+          <button class="grid-btn" onclick="openCategoryPlaces('${catKey}')">
             <span class="cat-icon notranslate">${icon}</span>
-            <span class="cat-label">${catKey}</span>
+            <span class="cat-title">${catKey}</span>
           </button>
         `;
       });
@@ -811,32 +833,33 @@
       grid.innerHTML = gridHtml;
     }
 
-    // Manejador del clic en un botón de la cuadrícula
-    function selectCategory(catKey, btnElement) {
-      currentCategory = catKey;
-      document.querySelectorAll('.category-card-btn').forEach(btn => btn.classList.remove('active'));
-      if (btnElement) btnElement.classList.add('active');
-
-      renderActiveCategoryPlaces();
-      registrarMetrica("Filtro Guía", catKey);
+    // Regresar a la vista de cuadrícula
+    function showCategoryGrid() {
+      document.getElementById('categoryGridSection').style.display = 'block';
+      document.getElementById('placesListSection').style.display = 'none';
+      window.scrollTo(0, 0);
     }
 
-    // Despliega exclusivamente los lugares correspondientes a la categoría seleccionada
-    function renderActiveCategoryPlaces() {
+    // Abrir la lista de lugares de una categoría
+    function openCategoryPlaces(catKey) {
+      document.getElementById('categoryGridSection').style.display = 'none';
+      const listSection = document.getElementById('placesListSection');
+      listSection.style.display = 'block';
+
       const container = document.getElementById('guiaList');
-      const filtered = localGuideData.filter(i => i.categoria.trim().toUpperCase() === currentCategory);
+      const filtered = localGuideData.filter(i => i.categoria.trim().toUpperCase() === catKey);
 
       if (filtered.length === 0) {
         container.innerHTML = `<div class="card"><p style="color:var(--text-muted); text-align:center;">No hay lugares registrados en esta sección.</p></div>`;
         return;
       }
 
-      const firstIcon = getCategoryEmoji(currentCategory, filtered[0]?.icono);
+      const firstIcon = getCategoryEmoji(catKey, filtered[0]?.icono);
       let html = `
         <div class="card">
           <div class="card-title">
             <span class="notranslate" style="margin-right: 6px;">${firstIcon}</span>
-            <span>${currentCategory}</span>
+            <span>${catKey}</span>
           </div>`;
 
       filtered.forEach(p => {
@@ -863,6 +886,9 @@
 
       html += `</div>`;
       container.innerHTML = html;
+      window.scrollTo(0, 0);
+
+      registrarMetrica("Filtro Guía", catKey);
     }
 
     function renderUI(data) {
@@ -965,7 +991,6 @@
       if (data.guia && Array.isArray(data.guia)) {
         localGuideData = data.guia;
         renderCategoryGrid(localGuideData);
-        renderActiveCategoryPlaces();
       }
 
       // Contactos
