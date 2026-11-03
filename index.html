@@ -30,7 +30,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ELIMINACIÓN TOTAL DEL BANNER Y RESALTADOS DE GOOGLE TRANSLATE */
+    /* ELIMINACIÓN TOTAL DEL BANNER DE GOOGLE TRANSLATE */
     .skiptranslate,
     .goog-te-banner-frame,
     .goog-te-banner-frame.skiptranslate,
@@ -194,6 +194,24 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* BANNER DE TEMPORADA (CANVA) */
+    #seasonalBanner {
+      display: none;
+      width: 100%;
+      margin-bottom: 14px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid var(--border-color);
+    }
+
+    #seasonalBanner img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
     /* TARJETAS CONTENEDORAS */
     .card {
       background: var(--card-bg);
@@ -310,7 +328,55 @@
       line-height: 1.4;
     }
 
-    /* ESTRUCTURA VERTICAL INDESTRUCTIBLE PARA LA GUÍA LOCAL */
+    /* BARRA DE FILTROS INTERACTIVOS PARA GUÍA LOCAL */
+    .filter-scroll-wrapper {
+      position: sticky;
+      top: calc(var(--header-h) + 4px);
+      z-index: 900;
+      background: var(--bg-cream);
+      padding: 6px 0 12px 0;
+      margin-bottom: 6px;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 4px 2px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .filter-chip.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 3px 8px rgba(0, 86, 179, 0.3);
+    }
+
+    /* ESTRUCTURA VERTICAL PARA ELEMENTOS DE GUÍA LOCAL */
     .place-box {
       display: block !important;
       width: 100% !important;
@@ -504,6 +570,11 @@
     <!-- INICIO -->
     <div id="tab-inicio" class="tab-content active">
       
+      <!-- CONTENEDOR PARA BANNER DE TEMPORADA DE CANVA -->
+      <div id="seasonalBanner">
+        <img id="imgSeasonalBanner" src="" alt="Temporada">
+      </div>
+
       <a id="btnRegresarCasa" href="#" target="_blank" class="btn-return-home">
         <i class="fas fa-location-arrow"></i> ¿Cómo regresar al departamento?
       </a>
@@ -555,8 +626,15 @@
       </div>
     </div>
 
-    <!-- GUIA LOCAL -->
+    <!-- GUIA LOCAL (INTERACTIVA CON FILTROS) -->
     <div id="tab-guia" class="tab-content">
+      
+      <!-- BARRA HORIZONTAL DESLIZABLE DE CATEGORÍAS -->
+      <div class="filter-scroll-wrapper">
+        <div class="filter-bar" id="categoryFilterBar"></div>
+      </div>
+
+      <!-- LISTA DE LUGARES FILTRADOS -->
       <div id="guiaList"></div>
     </div>
 
@@ -607,7 +685,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const depaParam = urlParams.get('depa') || 'abuelo';
 
-    // Función para registrar métricas en Google Sheets en segundo plano
+    let localGuideData = [];
+    let currentFilter = 'TODOS';
+
+    // Registro de métricas en Google Sheets en segundo plano
     function registrarMetrica(tipoEvento, detalle) {
       try {
         const idiomaActual = document.querySelector('.lang-btn.active')?.innerText.replace(/[^A-Za-z]/g, '') || 'ES';
@@ -674,13 +755,113 @@
       });
     }
 
+    // Renderizar botones de filtro para Guía Local
+    function renderCategoryFilters(guia) {
+      const filterBar = document.getElementById('categoryFilterBar');
+      const categoriesMap = {};
+
+      guia.forEach(item => {
+        const cat = item.categoria.toUpperCase().trim();
+        if (!categoriesMap[cat]) {
+          categoriesMap[cat] = item.icono || '📍';
+        }
+      });
+
+      let barHtml = `
+        <button class="filter-chip active" onclick="filterGuide('TODOS', this)">
+          <span class="notranslate">🌟</span> <span>Todos</span>
+        </button>
+      `;
+
+      for (let cat in categoriesMap) {
+        barHtml += `
+          <button class="filter-chip" onclick="filterGuide('${cat}', this)">
+            <span class="notranslate">${categoriesMap[cat]}</span> <span>${cat}</span>
+          </button>
+        `;
+      }
+
+      filterBar.innerHTML = barHtml;
+    }
+
+    // Filtrar lugares al presionar un botón
+    function filterGuide(selectedCat, btnElement) {
+      currentFilter = selectedCat;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      if (btnElement) btnElement.classList.add('active');
+
+      renderGuideCards();
+      registrarMetrica("Filtro Guía", selectedCat);
+    }
+
+    // Renderizar tarjetas de la Guía Local respetando el filtro y los emojis de la hoja
+    function renderGuideCards() {
+      const container = document.getElementById('guiaList');
+      const filtered = currentFilter === 'TODOS' 
+        ? localGuideData 
+        : localGuideData.filter(i => i.categoria.toUpperCase().trim() === currentFilter);
+
+      // Agrupar por categoría
+      const grouped = {};
+      filtered.forEach(place => {
+        const cat = place.categoria.toUpperCase().trim();
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(place);
+      });
+
+      let guiaHtml = '';
+      for (let cat in grouped) {
+        const firstIcon = grouped[cat][0]?.icono || '📍';
+        guiaHtml += `
+          <div class="card">
+            <div class="card-title">
+              <span class="notranslate" style="margin-right: 6px;">${firstIcon}</span>
+              <span>${cat}</span>
+            </div>`;
+
+        grouped[cat].forEach(p => {
+          const destinoMaps = p.busquedaMaps || p.nombre;
+          const mapsUrl = String(destinoMaps).startsWith('http') 
+            ? destinoMaps 
+            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destinoMaps + ' Coyoacán CDMX')}`;
+
+          guiaHtml += `
+            <div class="place-box">
+              <div class="place-title-row">
+                <span class="place-emoji notranslate">${p.icono || '📍'}</span>
+                <span class="place-name">${p.nombre}</span>
+              </div>
+              ${p.descripcion ? `<p class="place-desc">${p.descripcion}</p>` : ''}
+              ${p.busquedaMaps && p.busquedaMaps !== p.nombre ? `<p class="place-address notranslate"><i class="fas fa-map-marker-alt"></i> ${p.busquedaMaps}</p>` : ''}
+              <div class="place-btn-wrap">
+                <a href="${mapsUrl}" target="_blank" class="maps-btn" onclick="registrarMetrica('Clic en Guía', '${p.nombre.replace(/'/g, "\\'")}')">
+                  <i class="fas fa-directions"></i> <span>Ver en Google Maps</span>
+                </a>
+              </div>
+            </div>`;
+        });
+
+        guiaHtml += `</div>`;
+      }
+
+      container.innerHTML = guiaHtml;
+    }
+
     function renderUI(data) {
       document.getElementById('headerTitle').innerText = data.propiedad.nombre || "Mi Alojamiento";
       document.getElementById('txtBienvenida').innerText = data.propiedad.mensajeBienvenida || "";
       document.getElementById('txtCodigoPuerta').innerText = data.propiedad.codigoPuerta || "N/A";
       document.getElementById('txtCheckin').innerText = data.propiedad.checkin || "";
 
-      // Asignar destino al botón de Maps
+      // Soporte Banner de Temporada de Canva
+      if (data.propiedad.bannerTemporada && data.propiedad.bannerTemporada.trim().startsWith('http')) {
+        const bannerBox = document.getElementById('seasonalBanner');
+        const imgBanner = document.getElementById('imgSeasonalBanner');
+        imgBanner.src = data.propiedad.bannerTemporada.trim();
+        bannerBox.style.display = 'block';
+      }
+
+      // Botón Regresar a Casa con Maps
       const direccionDestino = data.propiedad.direccionMaps || "Benito Juárez 61, Del Carmen, Coyoacán, CDMX";
       const btnRegresar = document.getElementById('btnRegresarCasa');
       btnRegresar.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccionDestino)}`;
@@ -762,86 +943,12 @@
       }
       document.getElementById('inventarioList').innerHTML = invHtml;
 
-      // GUÍA LOCAL: RECONSTRUCCIÓN CON DETECCIÓN Y EMOJIS PROTEGIDOS
-      let guiaCategorias = {};
+      // Guía Local Interactiva
       if (data.guia && Array.isArray(data.guia)) {
-        data.guia.forEach(item => {
-          let cat = String(item.categoria || "Recomendaciones").toUpperCase().trim();
-          if (!guiaCategorias[cat]) guiaCategorias[cat] = [];
-
-          let nombre = item.nombre;
-          let descripcion = item.descripcion || "";
-          let direccion = item.direccion || "";
-          let maps = item.maps || "";
-          let icono = item.icono || "";
-
-          // Si el backend envió el nombre en la propiedad 'icono' por el desfase de columnas
-          if (icono && icono.length > 3 && !/^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/.test(icono)) {
-            nombre = icono;
-            descripcion = item.nombre;
-            direccion = item.descripcion || "";
-            icono = "";
-          }
-
-          // Asignación de emojis temáticos garantizados por categoría
-          if (!icono || icono.length > 3) {
-            let catL = cat.toLowerCase();
-            if (catL.includes("MUSEO")) icono = "🏛️";
-            else if (catL.includes("PANADER") || catL.includes("PAN")) icono = "🥐";
-            else if (catL.includes("RESTAURAN") || catL.includes("COMIDA") || catL.includes("TACO")) icono = "🍽️";
-            else if (catL.includes("CAFÉ") || catL.includes("CAFE")) icono = "☕";
-            else if (catL.includes("BAR") || catL.includes("CANTINA") || catL.includes("CERVE")) icono = "🍻";
-            else if (catL.includes("MERCADO") || catL.includes("TIENDA") || catL.includes("ARTESAN")) icono = "🛍️";
-            else if (catL.includes("PARQUE") || catL.includes("JARDIN") || catL.includes("JARDÍN") || catL.includes("VIVEROS")) icono = "🌳";
-            else if (catL.includes("IGLESIA") || catL.includes("PARROQUIA")) icono = "⛪";
-            else if (catL.includes("TEATRO") || catL.includes("CINE") || catL.includes("CULTUR")) icono = "🎭";
-            else icono = "📍";
-          }
-
-          guiaCategorias[cat].push({
-            nombre: nombre,
-            descripcion: descripcion,
-            direccion: direccion,
-            maps: maps || direccion || nombre,
-            icono: icono
-          });
-        });
+        localGuideData = data.guia;
+        renderCategoryFilters(localGuideData);
+        renderGuideCards();
       }
-
-      let guiaHtml = '';
-      for (let cat in guiaCategorias) {
-        let catIcon = guiaCategorias[cat][0]?.icono || '📍';
-        guiaHtml += `
-          <div class="card">
-            <div class="card-title">
-              <span class="notranslate" style="margin-right: 6px;">${catIcon}</span>
-              <span>${cat}</span>
-            </div>`;
-
-        guiaCategorias[cat].forEach(p => {
-          let destinoMaps = p.maps || p.direccion || p.nombre;
-          let mapsUrl = String(destinoMaps).startsWith('http') 
-            ? destinoMaps 
-            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destinoMaps + ' Coyoacán CDMX')}`;
-
-          guiaHtml += `
-            <div class="place-box">
-              <div class="place-title-row">
-                <span class="place-emoji notranslate">${p.icono}</span>
-                <span class="place-name">${p.nombre}</span>
-              </div>
-              ${p.descripcion ? `<p class="place-desc">${p.descripcion}</p>` : ''}
-              ${p.direccion && p.direccion !== p.nombre ? `<p class="place-address notranslate"><i class="fas fa-map-marker-alt"></i> ${p.direccion}</p>` : ''}
-              <div class="place-btn-wrap">
-                <a href="${mapsUrl}" target="_blank" class="maps-btn" onclick="registrarMetrica('Clic en Guía', '${p.nombre.replace(/'/g, "\\'")}')">
-                  <i class="fas fa-directions"></i> <span>Ver en Google Maps</span>
-                </a>
-              </div>
-            </div>`;
-        });
-        guiaHtml += `</div>`;
-      }
-      document.getElementById('guiaList').innerHTML = guiaHtml;
 
       // Contactos
       let contactoHtml = '';
