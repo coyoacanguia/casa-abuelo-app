@@ -194,7 +194,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* BANNER DE TEMPORADA (CANVA) */
+    /* BANNER DE TEMPORADA */
     #seasonalBanner {
       display: none;
       width: 100%;
@@ -328,52 +328,55 @@
       line-height: 1.4;
     }
 
-    /* BARRA DE FILTROS INTERACTIVOS PARA GUÍA LOCAL */
-    .filter-scroll-wrapper {
-      position: sticky;
-      top: calc(var(--header-h) + 4px);
-      z-index: 900;
-      background: var(--bg-cream);
-      padding: 6px 0 12px 0;
-      margin-bottom: 6px;
+    /* CUADRÍCULA DE BOTONES INTERACTIVOS (3 COLUMNAS) */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
-    .filter-bar {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      white-space: nowrap;
-      padding: 4px 2px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-
-    .filter-bar::-webkit-scrollbar {
-      display: none;
-    }
-
-    .filter-chip {
+    .category-card-btn {
       background: #ffffff;
-      border: 1px solid #d0d7de;
-      color: var(--text-main);
-      padding: 8px 14px;
-      border-radius: 20px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 6px;
+      display: flex;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 6px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
       transition: all 0.2s ease;
-      flex-shrink: 0;
+      min-height: 76px;
     }
 
-    .filter-chip.active {
+    .category-card-btn:active {
+      transform: scale(0.96);
+    }
+
+    .category-card-btn .cat-icon {
+      font-size: 1.45rem;
+      line-height: 1;
+    }
+
+    .category-card-btn .cat-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-align: center;
+      line-height: 1.15;
+    }
+
+    .category-card-btn.active {
       background: var(--primary);
-      color: #ffffff;
       border-color: var(--primary);
-      box-shadow: 0 3px 8px rgba(0, 86, 179, 0.3);
+      box-shadow: 0 4px 10px rgba(0, 86, 179, 0.28);
+    }
+
+    .category-card-btn.active .cat-label {
+      color: #ffffff;
     }
 
     /* ESTRUCTURA VERTICAL PARA ELEMENTOS DE GUÍA LOCAL */
@@ -626,15 +629,13 @@
       </div>
     </div>
 
-    <!-- GUIA LOCAL (INTERACTIVA CON FILTROS) -->
+    <!-- GUIA LOCAL (INTERACTIVA EN CUADRÍCULA) -->
     <div id="tab-guia" class="tab-content">
       
-      <!-- BARRA HORIZONTAL DESLIZABLE DE CATEGORÍAS -->
-      <div class="filter-scroll-wrapper">
-        <div class="filter-bar" id="categoryFilterBar"></div>
-      </div>
+      <!-- CUADRÍCULA DE 3 COLUMNAS PARA CATEGORÍAS -->
+      <div class="category-grid" id="categoryGrid"></div>
 
-      <!-- LISTA DE LUGARES FILTRADOS -->
+      <!-- LISTA DE LUGARES DE LA CATEGORÍA ACTIVA -->
       <div id="guiaList"></div>
     </div>
 
@@ -686,7 +687,27 @@
     const depaParam = urlParams.get('depa') || 'abuelo';
 
     let localGuideData = [];
-    let currentFilter = 'TODOS';
+    let currentCategory = '';
+
+    // Asignación de icono de categoría representativo
+    function getCategoryEmoji(catName, sampleItemIcon) {
+      if (sampleItemIcon && sampleItemIcon.trim() !== '📍') {
+        return sampleItemIcon.trim();
+      }
+      const c = catName.toLowerCase();
+      if (c.includes("restauran") || c.includes("comida")) return "🍽️";
+      if (c.includes("museo")) return "🎨";
+      if (c.includes("panader")) return "🍞";
+      if (c.includes("estadio")) return "🏟️";
+      if (c.includes("cafe") || c.includes("café")) return "☕";
+      if (c.includes("amenidad")) return "✨";
+      if (c.includes("iglesia") || c.includes("parroquia") || c.includes("capilla")) return "⛪";
+      if (c.includes("arqueolog") || c.includes("piramid") || c.includes("zona")) return "🏛️";
+      if (c.includes("mall") || c.includes("plaza") || c.includes("centro comercial") || c.includes("tienda")) return "🛍️";
+      if (c.includes("parque") || c.includes("viveros")) return "🌳";
+      if (c.includes("bar") || c.includes("cantina")) return "🍻";
+      return "📍";
+    }
 
     // Registro de métricas en Google Sheets en segundo plano
     function registrarMetrica(tipoEvento, detalle) {
@@ -755,96 +776,93 @@
       });
     }
 
-    // Renderizar botones de filtro para Guía Local
-    function renderCategoryFilters(guia) {
-      const filterBar = document.getElementById('categoryFilterBar');
-      const categoriesMap = {};
+    // Renderizar la cuadrícula de botones interactivos según las categorías de Sheets
+    function renderCategoryGrid(guia) {
+      const grid = document.getElementById('categoryGrid');
+      const uniqueCats = [];
+      const catIcons = {};
 
       guia.forEach(item => {
-        const cat = item.categoria.toUpperCase().trim();
-        if (!categoriesMap[cat]) {
-          categoriesMap[cat] = item.icono || '📍';
+        const cat = item.categoria.trim();
+        const catKey = cat.toUpperCase();
+        if (!uniqueCats.includes(catKey)) {
+          uniqueCats.push(catKey);
+          catIcons[catKey] = getCategoryEmoji(cat, item.icono);
         }
       });
 
-      let barHtml = `
-        <button class="filter-chip active" onclick="filterGuide('TODOS', this)">
-          <span class="notranslate">🌟</span> <span>Todos</span>
-        </button>
-      `;
+      // Seleccionar por defecto la primera categoría existente
+      if (!currentCategory && uniqueCats.length > 0) {
+        currentCategory = uniqueCats[0];
+      }
 
-      for (let cat in categoriesMap) {
-        barHtml += `
-          <button class="filter-chip" onclick="filterGuide('${cat}', this)">
-            <span class="notranslate">${categoriesMap[cat]}</span> <span>${cat}</span>
+      let gridHtml = '';
+      uniqueCats.forEach(catKey => {
+        const isActive = (catKey === currentCategory) ? 'active' : '';
+        const icon = catIcons[catKey] || '📍';
+        gridHtml += `
+          <button class="category-card-btn ${isActive}" onclick="selectCategory('${catKey}', this)">
+            <span class="cat-icon notranslate">${icon}</span>
+            <span class="cat-label">${catKey}</span>
           </button>
         `;
-      }
-
-      filterBar.innerHTML = barHtml;
-    }
-
-    // Filtrar lugares al presionar un botón
-    function filterGuide(selectedCat, btnElement) {
-      currentFilter = selectedCat;
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      if (btnElement) btnElement.classList.add('active');
-
-      renderGuideCards();
-      registrarMetrica("Filtro Guía", selectedCat);
-    }
-
-    // Renderizar tarjetas de la Guía Local respetando el filtro y los emojis de la hoja
-    function renderGuideCards() {
-      const container = document.getElementById('guiaList');
-      const filtered = currentFilter === 'TODOS' 
-        ? localGuideData 
-        : localGuideData.filter(i => i.categoria.toUpperCase().trim() === currentFilter);
-
-      // Agrupar por categoría
-      const grouped = {};
-      filtered.forEach(place => {
-        const cat = place.categoria.toUpperCase().trim();
-        if (!grouped[cat]) grouped[cat] = [];
-        grouped[cat].push(place);
       });
 
-      let guiaHtml = '';
-      for (let cat in grouped) {
-        const firstIcon = grouped[cat][0]?.icono || '📍';
-        guiaHtml += `
-          <div class="card">
-            <div class="card-title">
-              <span class="notranslate" style="margin-right: 6px;">${firstIcon}</span>
-              <span>${cat}</span>
-            </div>`;
+      grid.innerHTML = gridHtml;
+    }
 
-        grouped[cat].forEach(p => {
-          const destinoMaps = p.busquedaMaps || p.nombre;
-          const mapsUrl = String(destinoMaps).startsWith('http') 
-            ? destinoMaps 
-            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destinoMaps + ' Coyoacán CDMX')}`;
+    // Manejador del clic en un botón de la cuadrícula
+    function selectCategory(catKey, btnElement) {
+      currentCategory = catKey;
+      document.querySelectorAll('.category-card-btn').forEach(btn => btn.classList.remove('active'));
+      if (btnElement) btnElement.classList.add('active');
 
-          guiaHtml += `
-            <div class="place-box">
-              <div class="place-title-row">
-                <span class="place-emoji notranslate">${p.icono || '📍'}</span>
-                <span class="place-name">${p.nombre}</span>
-              </div>
-              ${p.descripcion ? `<p class="place-desc">${p.descripcion}</p>` : ''}
-              ${p.busquedaMaps && p.busquedaMaps !== p.nombre ? `<p class="place-address notranslate"><i class="fas fa-map-marker-alt"></i> ${p.busquedaMaps}</p>` : ''}
-              <div class="place-btn-wrap">
-                <a href="${mapsUrl}" target="_blank" class="maps-btn" onclick="registrarMetrica('Clic en Guía', '${p.nombre.replace(/'/g, "\\'")}')">
-                  <i class="fas fa-directions"></i> <span>Ver en Google Maps</span>
-                </a>
-              </div>
-            </div>`;
-        });
+      renderActiveCategoryPlaces();
+      registrarMetrica("Filtro Guía", catKey);
+    }
 
-        guiaHtml += `</div>`;
+    // Despliega exclusivamente los lugares correspondientes a la categoría seleccionada
+    function renderActiveCategoryPlaces() {
+      const container = document.getElementById('guiaList');
+      const filtered = localGuideData.filter(i => i.categoria.trim().toUpperCase() === currentCategory);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="card"><p style="color:var(--text-muted); text-align:center;">No hay lugares registrados en esta sección.</p></div>`;
+        return;
       }
 
-      container.innerHTML = guiaHtml;
+      const firstIcon = getCategoryEmoji(currentCategory, filtered[0]?.icono);
+      let html = `
+        <div class="card">
+          <div class="card-title">
+            <span class="notranslate" style="margin-right: 6px;">${firstIcon}</span>
+            <span>${currentCategory}</span>
+          </div>`;
+
+      filtered.forEach(p => {
+        const destinoMaps = p.busquedaMaps || p.nombre;
+        const mapsUrl = String(destinoMaps).startsWith('http') 
+          ? destinoMaps 
+          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destinoMaps + ' Coyoacán CDMX')}`;
+
+        html += `
+          <div class="place-box">
+            <div class="place-title-row">
+              <span class="place-emoji notranslate">${p.icono || '📍'}</span>
+              <span class="place-name">${p.nombre}</span>
+            </div>
+            ${p.descripcion ? `<p class="place-desc">${p.descripcion}</p>` : ''}
+            ${p.busquedaMaps && p.busquedaMaps !== p.nombre ? `<p class="place-address notranslate"><i class="fas fa-map-marker-alt"></i> ${p.busquedaMaps}</p>` : ''}
+            <div class="place-btn-wrap">
+              <a href="${mapsUrl}" target="_blank" class="maps-btn" onclick="registrarMetrica('Clic en Guía', '${p.nombre.replace(/'/g, "\\'")}')">
+                <i class="fas fa-directions"></i> <span>Ver en Google Maps</span>
+              </a>
+            </div>
+          </div>`;
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
     }
 
     function renderUI(data) {
@@ -943,11 +961,11 @@
       }
       document.getElementById('inventarioList').innerHTML = invHtml;
 
-      // Guía Local Interactiva
+      // Guía Local Interactiva con Cuadrícula
       if (data.guia && Array.isArray(data.guia)) {
         localGuideData = data.guia;
-        renderCategoryFilters(localGuideData);
-        renderGuideCards();
+        renderCategoryGrid(localGuideData);
+        renderActiveCategoryPlaces();
       }
 
       // Contactos
