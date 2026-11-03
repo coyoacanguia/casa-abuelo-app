@@ -18,7 +18,7 @@
       --text-muted: #718096;
       --accent-blue: #ebf3ff;
       --border-color: #e2e8f0;
-      --header-h: 62px;
+      --header-h: 64px;
       --bottom-nav-h: 68px;
     }
 
@@ -50,7 +50,7 @@
       min-height: 100vh !important;
       background-color: var(--bg-cream);
       color: var(--text-main);
-      padding-top: calc(var(--header-h) + 12px);
+      padding-top: calc(var(--header-h) + 16px);
       padding-bottom: calc(var(--bottom-nav-h) + 24px);
     }
 
@@ -80,7 +80,7 @@
     }
 
     .header-info {
-      max-width: 62%;
+      max-width: 60%;
       overflow: hidden;
     }
 
@@ -99,7 +99,7 @@
       margin-top: 1px;
     }
 
-    /* Selector de idiomas compacto */
+    /* Selector de idiomas */
     .lang-picker {
       display: flex;
       gap: 4px;
@@ -173,7 +173,7 @@
     .container {
       max-width: 600px;
       margin: 0 auto;
-      padding: 10px 16px;
+      padding: 6px 16px;
     }
 
     .tab-content {
@@ -207,6 +207,8 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      border-bottom: 1px solid #edf2f7;
+      padding-bottom: 8px;
     }
 
     .btn-return-home {
@@ -263,11 +265,12 @@
       gap: 6px;
     }
 
+    /* Estructura para elementos estándar */
     .item-row {
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid #f1f5f9;
     }
 
@@ -280,6 +283,7 @@
       font-size: 1.25rem;
       min-width: 28px;
       text-align: center;
+      line-height: 1.2;
     }
 
     .item-text {
@@ -287,16 +291,48 @@
     }
 
     .item-text h4 {
-      font-size: 0.92rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      font-weight: 700;
       color: var(--text-main);
+      margin-bottom: 3px;
     }
 
     .item-text p {
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
-      margin-top: 2px;
-      line-height: 1.35;
+      line-height: 1.4;
+    }
+
+    /* Estructura vertical limpia para lugares de la Guía Local */
+    .place-card {
+      display: block;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .place-card:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .place-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .place-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .place-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 6px;
     }
 
     .accordion-item {
@@ -342,10 +378,10 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin-top: 6px;
+      margin-top: 4px;
       color: var(--primary);
       text-decoration: none;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
     }
 
@@ -549,7 +585,7 @@
       }
     }
 
-    // Selector de idiomas sin permitir desfase de pantalla
+    // Selector de idiomas limpio
     function changeLanguage(lang) {
       document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.getElementById('btn-' + lang);
@@ -682,7 +718,7 @@
       }
       document.getElementById('inventarioList').innerHTML = invHtml;
 
-      // Guía Local protegida con tarjeta card
+      // Guía Local con diseño vertical ordenado
       let guiaCategorias = {};
       if (data.guia) {
         data.guia.forEach(place => {
@@ -693,19 +729,19 @@
       }
       let guiaHtml = '';
       for (let cat in guiaCategorias) {
-        guiaHtml += `<div class="card"><div class="card-title">${cat}</div>`;
+        guiaHtml += `<div class="card"><div class="card-title"><i class="fas fa-map-pin"></i> ${cat}</div>`;
         guiaCategorias[cat].forEach(p => {
           let mapsUrl = String(p.maps).startsWith('http') ? p.maps : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.maps)}`;
           guiaHtml += `
-            <div class="item-row">
-              <div class="item-icon notranslate">${p.icono || '📍'}</div>
-              <div class="item-text">
-                <h4>${p.nombre}</h4>
-                <p>${p.descripcion || ''}</p>
-                <a href="${mapsUrl}" target="_blank" class="maps-btn" onclick="registrarMetrica('Clic en Guía', '${p.nombre.replace(/'/g, "\\'")}')">
-                  <i class="fas fa-directions"></i> Ver en Google Maps
-                </a>
+            <div class="place-card">
+              <div class="place-header">
+                <span class="item-icon notranslate">${p.icono || '📍'}</span>
+                <span class="place-title">${p.nombre}</span>
               </div>
+              <p class="place-desc">${p.descripcion || ''}</p>
+              <a href="${mapsUrl}" target="_blank" class="maps-btn" onclick="registrarMetrica('Clic en Guía', '${p.nombre.replace(/'/g, "\\'")}')">
+                <i class="fas fa-directions"></i> Ver en Google Maps
+              </a>
             </div>`;
         });
         guiaHtml += `</div>`;
