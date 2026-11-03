@@ -30,7 +30,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ELIMINACIÓN TOTAL DEL BANNER DE GOOGLE TRANSLATE */
+    /* ELIMINACIÓN TOTAL DEL BANNER Y RESALTADOS DE GOOGLE TRANSLATE */
     .skiptranslate,
     .goog-te-banner-frame,
     .goog-te-banner-frame.skiptranslate,
@@ -51,11 +51,13 @@
       background-color: var(--bg-cream);
       color: var(--text-main);
       padding-top: calc(var(--header-h) + 16px);
-      padding-bottom: calc(var(--bottom-nav-h) + 30px);
+      padding-bottom: calc(var(--bottom-nav-h) + 26px);
     }
 
-    .goog-text-highlight {
-      background: none !important;
+    .goog-text-highlight,
+    font {
+      background: transparent !important;
+      background-color: transparent !important;
       box-shadow: none !important;
     }
 
@@ -206,7 +208,7 @@
       font-size: 0.95rem;
       font-weight: 700;
       color: var(--primary);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -270,7 +272,7 @@
       gap: 6px;
     }
 
-    /* FILAS DE INFORMACIÓN (INICIO / MANUAL) */
+    /* FILAS EN INICIO Y MANUAL */
     .item-row {
       display: flex;
       align-items: flex-start;
@@ -308,42 +310,63 @@
       line-height: 1.4;
     }
 
-    /* ESTRUCTURA LIMPIA Y VERTICAL PARA LA GUÍA LOCAL (EVITA DESCUADRES) */
-    .place-item {
+    /* ESTRUCTURA VERTICAL INDESTRUCTIBLE PARA LA GUÍA LOCAL */
+    .place-box {
       display: block !important;
       width: 100% !important;
-      padding: 14px 0;
-      border-bottom: 1px solid #edf2f7;
+      padding: 14px 0 !important;
+      border-bottom: 1px solid #edf2f7 !important;
     }
 
-    .place-item:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
+    .place-box:last-child {
+      border-bottom: none !important;
+      padding-bottom: 4px !important;
     }
 
-    .place-header {
+    .place-title-row {
       display: flex !important;
       align-items: center !important;
-      gap: 8px;
-      margin-bottom: 6px;
+      gap: 10px !important;
+      margin-bottom: 6px !important;
       width: 100% !important;
+    }
+
+    .place-emoji {
+      font-size: 1.35rem !important;
+      line-height: 1 !important;
+      display: inline-block !important;
+      flex-shrink: 0 !important;
     }
 
     .place-name {
-      font-size: 0.98rem !important;
+      font-size: 1rem !important;
       font-weight: 700 !important;
       color: var(--text-main) !important;
       line-height: 1.3 !important;
-      display: block !important;
     }
 
     .place-desc {
-      display: block !important;
-      width: 100% !important;
-      font-size: 0.86rem !important;
+      font-size: 0.88rem !important;
       color: var(--text-muted) !important;
       line-height: 1.45 !important;
-      margin-bottom: 8px !important;
+      margin: 0 0 6px 0 !important;
+      display: block !important;
+      width: 100% !important;
+    }
+
+    .place-address {
+      font-size: 0.8rem !important;
+      color: var(--text-muted) !important;
+      margin: 0 0 8px 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      opacity: 0.85 !important;
+    }
+
+    .place-btn-wrap {
+      display: block !important;
+      margin-top: 6px !important;
     }
 
     .maps-btn {
@@ -351,17 +374,18 @@
       align-items: center !important;
       gap: 6px !important;
       color: var(--primary) !important;
-      background-color: var(--accent-blue);
+      background-color: var(--accent-blue) !important;
       text-decoration: none !important;
       font-size: 0.82rem !important;
       font-weight: 600 !important;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background-color 0.2s;
+      padding: 7px 14px !important;
+      border-radius: 8px !important;
+      border: 1px solid #cce0ff !important;
+      transition: background-color 0.2s !important;
     }
 
     .maps-btn:active {
-      background-color: #dbeafe;
+      background-color: #dbeafe !important;
     }
 
     /* ACORDEÓN PARA INVENTARIO Y FAQ */
@@ -738,30 +762,81 @@
       }
       document.getElementById('inventarioList').innerHTML = invHtml;
 
-      // Guía Local: Renderizado vertical estructurado
+      // GUÍA LOCAL: RECONSTRUCCIÓN CON DETECCIÓN Y EMOJIS PROTEGIDOS
       let guiaCategorias = {};
-      if (data.guia) {
-        data.guia.forEach(place => {
-          let cat = String(place.categoria).toUpperCase();
+      if (data.guia && Array.isArray(data.guia)) {
+        data.guia.forEach(item => {
+          let cat = String(item.categoria || "Recomendaciones").toUpperCase().trim();
           if (!guiaCategorias[cat]) guiaCategorias[cat] = [];
-          guiaCategorias[cat].push(place);
+
+          let nombre = item.nombre;
+          let descripcion = item.descripcion || "";
+          let direccion = item.direccion || "";
+          let maps = item.maps || "";
+          let icono = item.icono || "";
+
+          // Si el backend envió el nombre en la propiedad 'icono' por el desfase de columnas
+          if (icono && icono.length > 3 && !/^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/.test(icono)) {
+            nombre = icono;
+            descripcion = item.nombre;
+            direccion = item.descripcion || "";
+            icono = "";
+          }
+
+          // Asignación de emojis temáticos garantizados por categoría
+          if (!icono || icono.length > 3) {
+            let catL = cat.toLowerCase();
+            if (catL.includes("MUSEO")) icono = "🏛️";
+            else if (catL.includes("PANADER") || catL.includes("PAN")) icono = "🥐";
+            else if (catL.includes("RESTAURAN") || catL.includes("COMIDA") || catL.includes("TACO")) icono = "🍽️";
+            else if (catL.includes("CAFÉ") || catL.includes("CAFE")) icono = "☕";
+            else if (catL.includes("BAR") || catL.includes("CANTINA") || catL.includes("CERVE")) icono = "🍻";
+            else if (catL.includes("MERCADO") || catL.includes("TIENDA") || catL.includes("ARTESAN")) icono = "🛍️";
+            else if (catL.includes("PARQUE") || catL.includes("JARDIN") || catL.includes("JARDÍN") || catL.includes("VIVEROS")) icono = "🌳";
+            else if (catL.includes("IGLESIA") || catL.includes("PARROQUIA")) icono = "⛪";
+            else if (catL.includes("TEATRO") || catL.includes("CINE") || catL.includes("CULTUR")) icono = "🎭";
+            else icono = "📍";
+          }
+
+          guiaCategorias[cat].push({
+            nombre: nombre,
+            descripcion: descripcion,
+            direccion: direccion,
+            maps: maps || direccion || nombre,
+            icono: icono
+          });
         });
       }
+
       let guiaHtml = '';
       for (let cat in guiaCategorias) {
-        guiaHtml += `<div class="card"><div class="card-title"><i class="fas fa-map-pin"></i> ${cat}</div>`;
+        let catIcon = guiaCategorias[cat][0]?.icono || '📍';
+        guiaHtml += `
+          <div class="card">
+            <div class="card-title">
+              <span class="notranslate" style="margin-right: 6px;">${catIcon}</span>
+              <span>${cat}</span>
+            </div>`;
+
         guiaCategorias[cat].forEach(p => {
-          let mapsUrl = String(p.maps).startsWith('http') ? p.maps : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.maps)}`;
+          let destinoMaps = p.maps || p.direccion || p.nombre;
+          let mapsUrl = String(destinoMaps).startsWith('http') 
+            ? destinoMaps 
+            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destinoMaps + ' Coyoacán CDMX')}`;
+
           guiaHtml += `
-            <div class="place-item">
-              <div class="place-header">
-                <span class="item-icon notranslate">${p.icono || '📍'}</span>
+            <div class="place-box">
+              <div class="place-title-row">
+                <span class="place-emoji notranslate">${p.icono}</span>
                 <span class="place-name">${p.nombre}</span>
               </div>
-              <p class="place-desc">${p.descripcion || ''}</p>
-              <a href="${mapsUrl}" target="_blank" class="maps-btn" onclick="registrarMetrica('Clic en Guía', '${p.nombre.replace(/'/g, "\\'")}')">
-                <i class="fas fa-directions"></i> Ver en Google Maps
-              </a>
+              ${p.descripcion ? `<p class="place-desc">${p.descripcion}</p>` : ''}
+              ${p.direccion && p.direccion !== p.nombre ? `<p class="place-address notranslate"><i class="fas fa-map-marker-alt"></i> ${p.direccion}</p>` : ''}
+              <div class="place-btn-wrap">
+                <a href="${mapsUrl}" target="_blank" class="maps-btn" onclick="registrarMetrica('Clic en Guía', '${p.nombre.replace(/'/g, "\\'")}')">
+                  <i class="fas fa-directions"></i> <span>Ver en Google Maps</span>
+                </a>
+              </div>
             </div>`;
         });
         guiaHtml += `</div>`;
